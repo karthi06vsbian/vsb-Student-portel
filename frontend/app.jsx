@@ -17,12 +17,12 @@ const ACCENTS = {
 
 function useHashRoute() {
   const [route, setRoute] = uS(() => {
-    const h = window.location.hash.replace(/^#/, '') || '/admin/dashboard';
+    const h = window.location.hash.replace(/^#/, '') || '/';
     return h;
   });
   uE(() => {
     function onHash() {
-      setRoute(window.location.hash.replace(/^#/, '') || '/admin/dashboard');
+      setRoute(window.location.hash.replace(/^#/, '') || '/');
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     window.addEventListener('hashchange', onHash);
