@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/VSB Student Portal.html"
+      "destination": "/index.html"
     }
   ]
 }
