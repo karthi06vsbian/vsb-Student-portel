@@ -65,7 +65,7 @@ function TopBar({ onNavigate, currentRoute, theme, onToggleTheme }) {
             <Monogram />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.02em' }}>VSB</div>
-              <div className="text-xs text-subtle" style={{ marginTop: -2 }}>Engineering & Technical Campus</div>
+              <div className="text-xs text-subtle brand-subtitle" style={{ marginTop: -2 }}>Engineering & Technical Campus</div>
             </div>
           </div>
         </a>

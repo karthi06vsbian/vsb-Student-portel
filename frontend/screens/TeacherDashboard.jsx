@@ -75,15 +75,15 @@ function TeacherDashboard({ onNavigate }) {
           </div>
 
           <GlassCard strong className="p-5">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 active-filter-header" style={{ flexWrap: 'wrap' }}>
               <Icon name="filter" size={18} style={{ color: 'var(--brand-primary)' }} />
               <div className="font-semibold">Active Filter</div>
               <span className="chip chip-brand">{filter.dept}</span>
               <span className="chip chip-accent">{filter.batch}</span>
               <span className="chip">Section {filter.section === 'ALL' ? 'All' : filter.section}</span>
-              <span className="text-sm text-muted" style={{ marginLeft: 'auto' }}>{filtered.length} students matched</span>
+              <span className="text-sm text-muted matched-label" style={{ marginLeft: 'auto' }}>{filtered.length} students matched</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.4fr 1fr auto', gap: 12 }} className="filter-row">
+            <div className="filter-row">
               <FilterSelect label="Department" value={filter.dept} onChange={v => setFilter({ ...filter, dept: v })}
                 options={[{ v: 'ALL', l: 'All Departments' }, ...window.VSB_DATA.DEPARTMENTS.map(d => ({ v: d.code, l: `${d.code} — ${d.name}` }))]} />
               <FilterSelect label="Batch" value={filter.batch} onChange={v => setFilter({ ...filter, batch: v })}
@@ -106,7 +106,7 @@ function TeacherDashboard({ onNavigate }) {
         </div>
 
         {/* Charts row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 16, marginBottom: 24 }} className="chart-row">
+        <div className="chart-row">
           <GlassCard className="p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -146,19 +146,19 @@ function TeacherDashboard({ onNavigate }) {
 
         {/* Table */}
         <GlassCard strong className="p-5">
-          <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 12 }}>
-            <div className="flex items-center gap-2">
-              <div style={{ position: 'relative' }}>
-                <input className="input" placeholder="Search by name or register #" value={query} onChange={e => setQuery(e.target.value)} style={{ paddingLeft: 40, width: 320 }} />
+          <div className="flex items-center justify-between mb-4 table-toolbar" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <div className="flex items-center gap-2 search-sort-row" style={{ flexWrap: 'wrap', width: '100%', maxWidth: 520 }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: 200 }} className="search-container">
+                <input className="input search-input" placeholder="Search by name or register #" value={query} onChange={e => setQuery(e.target.value)} style={{ paddingLeft: 40, width: '100%' }} />
                 <Icon name="search" size={16} style={{ position: 'absolute', left: 14, top: 16, color: 'var(--text-subtle)' }} />
               </div>
-              <select className="input" style={{ width: 180, padding: '12px 14px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+              <select className="input sort-select" style={{ width: 180, padding: '12px 14px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
                 <option value="name">Sort: Name</option>
                 <option value="cgpa">Sort: CGPA (high→low)</option>
                 <option value="completion">Sort: Completion %</option>
               </select>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 table-actions" style={{ flexWrap: 'wrap' }}>
               {selected.size > 0 && (
                 <>
                   <span className="chip chip-brand">{selected.size} selected</span>

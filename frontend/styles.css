@@ -358,3 +358,74 @@ table.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 /* Pulse dot */
 .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent); animation: pulse 2s infinite; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent); } 70% { box-shadow: 0 0 0 12px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+/* Responsive layout classes for dashboards */
+.filter-row {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1fr auto;
+  gap: 12px;
+}
+.chart-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .chart-row {
+    grid-template-columns: 1fr;
+  }
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  .filter-row button {
+    width: 100%;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Hide title subtitle to save space */
+  .brand-subtitle {
+    display: none !important;
+  }
+  /* Topbar link spacing */
+  nav.glass a {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+  /* Match label wrap in active filter card */
+  .active-filter-header {
+    flex-wrap: wrap !important;
+  }
+  .active-filter-header .matched-label {
+    margin-left: 0 !important;
+    width: 100% !important;
+    margin-top: 4px;
+  }
+  /* Table search/sort bar controls spacing */
+  .table-toolbar {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  .search-sort-row {
+    max-width: 100% !important;
+  }
+  .search-container {
+    width: 100% !important;
+  }
+  .search-input {
+    width: 100% !important;
+  }
+  .sort-select {
+    width: 100% !important;
+  }
+  .table-actions {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  .table-actions button {
+    flex: 1;
+  }
+}
