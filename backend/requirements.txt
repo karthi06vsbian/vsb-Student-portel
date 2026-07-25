@@ -1,0 +1,4 @@
+Django>=5.0
+django-cors-headers>=4.0
+pymysql>=1.1
+gunicorn>=21.0
