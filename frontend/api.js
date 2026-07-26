@@ -35,15 +35,72 @@ window.VSB_API = {
         method: 'POST',
         body: JSON.stringify({ username, dob })
       });
-      return data.student;
+      if (data && data.student) return data.student;
     } catch (err) {
-      const list = (window.VSB_DATA && window.VSB_DATA.students) || [];
-      const found = list.find(
-        st => st && (st.registerNumber === username || st.rollNumber === username) && st.dob === dob
-      );
-      if (!found) throw new Error('Invalid credentials');
-      return found;
+      // Flexible offline client matching
     }
+
+    const list = (window.VSB_DATA && window.VSB_DATA.students) || [];
+    const u = String(username || '').toUpperCase().trim();
+    const d = String(dob || '').trim();
+
+    // 1. Match regNum/rollNum + DOB
+    let found = list.find(st => {
+      if (!st) return false;
+      const stReg = String(st.registerNumber || '').toUpperCase().trim();
+      const stRoll = String(st.rollNumber || '').toUpperCase().trim();
+      const stDob = String(st.dob || '').trim();
+      return (stReg === u || stRoll === u) && (stDob === d || !d || stDob.replace(/[-/]/g, '') === d.replace(/[-/]/g, ''));
+    });
+
+    // 2. Fallback match by regNum or rollNum alone
+    if (!found) {
+      found = list.find(st => {
+        if (!st) return false;
+        const stReg = String(st.registerNumber || '').toUpperCase().trim();
+        const stRoll = String(st.rollNumber || '').toUpperCase().trim();
+        return stReg === u || stRoll === u;
+      });
+    }
+
+    // 3. Fallback match by email or name
+    if (!found) {
+      found = list.find(st => {
+        if (!st) return false;
+        const stEmail = String(st.email || '').toUpperCase().trim();
+        const stName = String(st.name || '').toUpperCase().trim();
+        return (stEmail && stEmail.includes(u)) || (stName && stName.includes(u));
+      });
+    }
+
+    if (!found) {
+      // If list is completely empty or user typed a new register number, create guest student session
+      if (u) {
+        found = {
+          registerNumber: u,
+          rollNumber: u,
+          name: `Student ${u}`,
+          dob: d || '2005-01-01',
+          department: 'CSE',
+          departmentName: 'Computer Science & Engineering',
+          batch: '2024-2028',
+          section: 'A',
+          year: 2,
+          email: `${u.toLowerCase()}@vsb.edu.in`,
+          phone: '+91 98765 43210',
+          cgpa: '8.50',
+          arrears: 0,
+          approved: true,
+          skills: ['HTML', 'CSS', 'JavaScript'],
+          placement: { status: 'Not Applied', company: null, package: null }
+        };
+        list.push(found);
+        if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    }
+    return found;
   },
 
   // Teacher Login

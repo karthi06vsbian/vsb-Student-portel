@@ -1,8 +1,10 @@
 // Student Dashboard — long-scroll with left sidebar anchors, all fields editable
 function StudentDashboard({ onNavigate }) {
   const initialStudent = React.useMemo(() => {
-    return window.VSB_DATA.students.find(st => st.registerNumber === window.VSB_DATA.currentStudentRegNum) || window.VSB_DATA.students[0];
-  }, [window.VSB_DATA.currentStudentRegNum]);
+    const list = (window.VSB_DATA && window.VSB_DATA.students) || [];
+    const curReg = window.VSB_DATA && window.VSB_DATA.currentStudentRegNum;
+    return list.find(st => st && st.registerNumber === curReg) || list[0] || { registerNumber: '2023CS042', name: 'Karthik S.', department: 'CSE', departmentName: 'Computer Science & Engineering', batch: '2024-2028', section: 'A', email: 'karthik.s@vsb.edu.in', skills: ['HTML', 'CSS', 'JavaScript'] };
+  }, [window.VSB_DATA ? window.VSB_DATA.currentStudentRegNum : null]);
   const [s, setS] = useState(initialStudent);
   
   // Update state if student changes
