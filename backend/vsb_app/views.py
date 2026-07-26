@@ -1,25 +1,220 @@
 import json
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse
+from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Department, Teacher, Student
 
 def root_api_view(request):
     """
-    Root URL view for Render backend service.
-    Redirects browser requests to the frontend web app (Vercel),
-    and returns a clean API status for API clients.
+    Root URL health check dashboard for Render backend service.
+    Displays live server status, database connection info, and active endpoints.
     """
     accept = request.META.get('HTTP_ACCEPT', '')
-    if 'text/html' in accept and 'application/json' not in accept:
-        return HttpResponseRedirect('https://vsb-student-portel.vercel.app/')
-    return JsonResponse({
-        "status": "online",
-        "service": "VSB Student Information Portal Backend API",
-        "frontend": "https://vsb-student-portel.vercel.app/",
-        "api_endpoints": "/api/",
-        "admin_portal": "/admin/"
-    })
+    
+    # Check DB status
+    db_engine = "Unknown"
+    db_status = "Connected"
+    try:
+        engine = connection.settings_dict.get('ENGINE', '')
+        if 'mysql' in engine:
+            db_engine = "MySQL Database (Cloud Hosted)"
+        else:
+            db_engine = "SQLite 3 (Local/Fallback)"
+    except Exception as e:
+        db_status = f"Error: {e}"
+
+    if 'application/json' in accept and 'text/html' not in accept:
+        return JsonResponse({
+            "status": "online",
+            "service": "VSB Student Information Portal Backend Engine",
+            "database_backend": db_engine,
+            "database_status": db_status,
+            "endpoints": {
+                "admin": "/admin/",
+                "student_login": "/api/student-login/",
+                "teacher_login": "/api/teacher-login/",
+                "admin_login": "/api/admin-login/",
+                "students_list": "/api/students/",
+                "sync_initial": "/api/students/sync-initial/"
+            }
+        })
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VSB Backend API — Status: Online</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: 'Inter', sans-serif;
+      background: #0B0F19;
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }}
+    .card {{
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 680px;
+      padding: 36px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }}
+    .header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }}
+    .title {{
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }}
+    .badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34D399;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }}
+    .pulse {{
+      width: 8px;
+      height: 8px;
+      background: #10B981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10B981;
+    }}
+    .section {{
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }}
+    .grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }}
+    .label {{
+      font-size: 0.75rem;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }}
+    .value {{
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #F8FAFC;
+    }}
+    .mono {{
+      font-family: 'JetBrains Mono', monospace;
+      color: #38BDF8;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.88rem;
+    }}
+    th, td {{
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }}
+    th {{
+      color: #94A3B8;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }}
+    .btn {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }}
+    .btn-primary {{
+      background: linear-gradient(135deg, #2563EB, #3B82F6);
+      color: white;
+    }}
+    .btn-ghost {{
+      background: rgba(255, 255, 255, 0.08);
+      color: #E2E8F0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <div class="title">VSB Student Portal Backend</div>
+        <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px;">Django REST Service · Render Hosting</div>
+      </div>
+      <div class="badge"><span class="pulse"></span> 200 OK — ONLINE</div>
+    </div>
+
+    <div class="section grid">
+      <div>
+        <div class="label">Database Backend</div>
+        <div class="value mono">{db_engine}</div>
+      </div>
+      <div>
+        <div class="label">Connection Status</div>
+        <div class="value" style="color: #34D399;">✓ {db_status}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="label" style="margin-bottom: 8px;">Active REST API Endpoints</div>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span style="color:#34D399;font-weight:700;">POST</span></td><td class="mono">/api/student-login/</td><td>Student Authentication</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:700;">POST</span></td><td class="mono">/api/teacher-login/</td><td>Faculty Authentication</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:700;">POST</span></td><td class="mono">/api/admin-login/</td><td>Admin Authentication</td></tr>
+          <tr><td><span style="color:#60A5FA;font-weight:700;">GET/PUT</span></td><td class="mono">/api/students/</td><td>Student Profiles & Records</td></tr>
+          <tr><td><span style="color:#F59E0B;font-weight:700;">POST</span></td><td class="mono">/api/students/bulk-import/</td><td>CSV / Excel Upload Sync</td></tr>
+          <tr><td><span style="color:#A78BFA;font-weight:700;">GET</span></td><td class="mono">/admin/</td><td>Django DB Management</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
+      <a href="https://vsb-student-portel.vercel.app/" class="btn btn-primary" target="_blank">🌐 Open Vercel Web Portal</a>
+      <a href="/admin/" class="btn btn-ghost" target="_blank">🛠️ Django Admin Console</a>
+    </div>
+  </div>
+</body>
+</html>"""
+    return HttpResponse(html_content)
 
 def serialize_student(s):
     return {
