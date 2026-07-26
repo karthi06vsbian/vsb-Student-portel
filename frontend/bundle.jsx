@@ -3343,9 +3343,45 @@ function AdminDepartments({ departments, setDepartments }) {
     alert('Department updated successfully!');
   };
 
+  // Batches & Sections management
+  const [batchesList, setBatchesList] = useState(() => (window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]);
   const [sectionsList, setSectionsList] = useState(() => (window.VSB_DATA && window.VSB_DATA.SECTIONS) || ['A', 'B', 'C', 'D']);
+  const [newBatchName, setNewBatchName] = useState('');
+  const [showAddBatch, setShowAddBatch] = useState(false);
+
+  const [targetBatch, setTargetBatch] = useState('ALL');
+  const [targetDept, setTargetDept] = useState('ALL');
   const [newSecName, setNewSecName] = useState('');
   const [showAddSec, setShowAddSec] = useState(false);
+
+  const handleAddBatch = () => {
+    const bName = newBatchName.trim();
+    if (!bName) {
+      alert('Please enter batch year (e.g. 2026-2030)');
+      return;
+    }
+    if (batchesList.includes(bName)) {
+      alert(`Batch ${bName} already exists!`);
+      return;
+    }
+    const nextBatches = [...batchesList, bName];
+    setBatchesList(nextBatches);
+    if (window.VSB_DATA) {
+      window.VSB_DATA.BATCHES = nextBatches;
+      if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
+      window.VSB_DATA.activityLogs = [{
+        id: ((window.VSB_DATA.activityLogs) || []).length + 1,
+        actor: 'Super Admin',
+        action: 'Created',
+        target: `Academic Batch ${bName}`,
+        time: 'Just now',
+        color: 'brand'
+      }, ...((window.VSB_DATA.activityLogs) || [])];
+    }
+    setNewBatchName('');
+    setShowAddBatch(false);
+    alert(`Batch ${bName} created successfully!`);
+  };
 
   const handleAddSection = () => {
     const sec = newSecName.trim().toUpperCase().replace(/^SECTION\s*/i, '');
@@ -3353,27 +3389,28 @@ function AdminDepartments({ departments, setDepartments }) {
       alert('Please enter a section designation (e.g. E, F, G)');
       return;
     }
-    if (sectionsList.includes(sec)) {
-      alert(`Section ${sec} already exists!`);
-      return;
-    }
-    const nextSections = [...sectionsList, sec];
+    const nextSections = sectionsList.includes(sec) ? sectionsList : [...sectionsList, sec];
     setSectionsList(nextSections);
+
     if (window.VSB_DATA) {
       window.VSB_DATA.SECTIONS = nextSections;
       if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
+
+      const batchLabel = targetBatch === 'ALL' ? 'All Batches' : `Batch ${targetBatch}`;
+      const deptLabel = targetDept === 'ALL' ? 'All Departments' : `Dept ${targetDept}`;
+
       window.VSB_DATA.activityLogs = [{
         id: ((window.VSB_DATA.activityLogs) || []).length + 1,
         actor: 'Super Admin',
         action: 'Created',
-        target: `Section ${sec} across all departments`,
+        target: `Section ${sec} for ${batchLabel} (${deptLabel})`,
         time: 'Just now',
         color: 'accent'
       }, ...((window.VSB_DATA.activityLogs) || [])];
     }
     setNewSecName('');
     setShowAddSec(false);
-    alert(`Section ${sec} added successfully across all departments!`);
+    alert(`Section ${sec} provisioned for ${targetBatch === 'ALL' ? 'All Batches' : targetBatch} (${targetDept === 'ALL' ? 'All Departments' : targetDept})!`);
   };
 
   const handleDeleteSection = (sec) => {
@@ -3444,7 +3481,7 @@ function AdminDepartments({ departments, setDepartments }) {
             position: 'fixed', inset: 0, zIndex: 1000,
             background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
             backdropFilter: 'blur(20px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+            display: 'flex', items: 'center', justifyContent: 'center', padding: 20
           }}>
             <GlassCard strong className="p-6" style={{ width: '100%', maxWidth: 500 }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Edit Department ({editingDept.code})</h3>
@@ -3475,36 +3512,85 @@ function AdminDepartments({ departments, setDepartments }) {
         )}
       </GlassCard>
 
-      {/* Class Sections Across All Departments */}
+      {/* Batches & Sections Provisioning Card */}
       <GlassCard className="p-5 mt-6">
         <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h2 style={{ fontSize: '1.2rem' }}>Class Sections (All Departments)</h2>
-            <p className="text-sm mt-1">Manage active section designations (A, B, C, D, E, etc.) assigned across all academic departments.</p>
+            <h2 style={{ fontSize: '1.2rem' }}>Academic Batches & Section Provisioning</h2>
+            <p className="text-sm mt-1">Create new academic batches and assign section designations (A, B, C, D, E, F...) per Batch & Department.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowAddSec(true)}><Icon name="plus" size={16} /> Add New Section</button>
+          <div className="flex gap-2">
+            <button className="btn btn-ghost" onClick={() => setShowAddBatch(true)}><Icon name="plus" size={16} /> Add Batch</button>
+            <button className="btn btn-primary" onClick={() => setShowAddSec(true)}><Icon name="plus" size={16} /> Add & Provision Section</button>
+          </div>
         </div>
 
-        {showAddSec && (
-          <div className="glass-inner p-4 mb-4 flex items-center gap-3" style={{ maxWidth: 480 }}>
-            <input className="input" placeholder="Section name (e.g. E, F)" value={newSecName} onChange={e => setNewSecName(e.target.value)} />
-            <button className="btn btn-ghost" onClick={() => setShowAddSec(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleAddSection}>Save Section</button>
+        {/* Form: Add New Batch */}
+        {showAddBatch && (
+          <div className="glass-inner p-4 mb-4 flex items-center gap-3" style={{ maxWidth: 500 }}>
+            <input className="input mono" placeholder="e.g. 2026-2030" value={newBatchName} onChange={e => setNewBatchName(e.target.value)} />
+            <button className="btn btn-ghost" onClick={() => setShowAddBatch(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleAddBatch}>Save Batch</button>
           </div>
         )}
 
-        <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
-          {sectionsList.map(sec => (
-            <div key={sec} className="glass-inner flex items-center gap-3" style={{ padding: '8px 16px', borderRadius: 999 }}>
-              <span className="mono font-semibold" style={{ fontSize: '0.95rem' }}>Section {sec}</span>
-              <span className="chip chip-accent" style={{ fontSize: '0.72rem' }}>Active</span>
-              {sectionsList.length > 1 && (
-                <button className="btn btn-ghost btn-icon" style={{ padding: 2, color: '#EF4444' }} title="Remove section" onClick={() => handleDeleteSection(sec)}>
-                  <Icon name="close" size={12} />
-                </button>
-              )}
+        {/* Form: Add Section with Batch & Department Selection */}
+        {showAddSec && (
+          <div className="glass-inner p-4 mb-4" style={{ display: 'grid', gap: 12, maxWidth: 650 }}>
+            <h3 className="text-sm font-semibold">Provision Section to Batch & Department</h3>
+            <div className="grid-3">
+              <div>
+                <label className="field-label">Target Batch</label>
+                <select className="input" value={targetBatch} onChange={e => setTargetBatch(e.target.value)}>
+                  <option value="ALL">All Batches</option>
+                  {batchesList.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Target Department</label>
+                <select className="input" value={targetDept} onChange={e => setTargetDept(e.target.value)}>
+                  <option value="ALL">All Departments</option>
+                  {departments.map(d => <option key={d.code} value={d.code}>{d.code} - {d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Section Name</label>
+                <input className="input mono" placeholder="e.g. E, F, G" value={newSecName} onChange={e => setNewSecName(e.target.value)} />
+              </div>
             </div>
-          ))}
+            <div className="flex justify-end gap-2">
+              <button className="btn btn-ghost" onClick={() => setShowAddSec(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAddSection}>Provision Section</button>
+            </div>
+          </div>
+        )}
+
+        {/* Active Batches Pills */}
+        <div className="mb-4">
+          <div className="text-xs text-subtle font-semibold uppercase mb-2">Active Academic Batches</div>
+          <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
+            {batchesList.map(b => (
+              <span key={b} className="chip chip-brand mono" style={{ fontSize: '0.85rem', padding: '6px 12px' }}>Batch {b}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Active Sections Pills */}
+        <div>
+          <div className="text-xs text-subtle font-semibold uppercase mb-2">Active Class Sections</div>
+          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
+            {sectionsList.map(sec => (
+              <div key={sec} className="glass-inner flex items-center gap-3" style={{ padding: '8px 16px', borderRadius: 999 }}>
+                <span className="mono font-semibold" style={{ fontSize: '0.95rem' }}>Section {sec}</span>
+                <span className="chip chip-accent" style={{ fontSize: '0.72rem' }}>Active</span>
+                {sectionsList.length > 1 && (
+                  <button className="btn btn-ghost btn-icon" style={{ padding: 2, color: '#EF4444' }} title="Remove section" onClick={() => handleDeleteSection(sec)}>
+                    <Icon name="close" size={12} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </GlassCard>
     </>

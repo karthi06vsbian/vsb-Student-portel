@@ -183,8 +183,13 @@ window.VSB_DATA = (() => {
 
   const batchEmailAuth = { '2022-2026': false, '2023-2027': false, '2024-2028': false, '2025-2029': false };
 
-  // Persistent localStorage retrieval
+  let savedStudents = null;
+  let savedTeachers = null;
+  let savedLogs = null;
+  let savedBatchEmail = null;
+  let savedBatches = null;
   let savedSections = null;
+  let savedBatchSections = null;
 
   try {
     const rawSt = localStorage.getItem('vsb_portal_students');
@@ -199,8 +204,14 @@ window.VSB_DATA = (() => {
     const rawB = localStorage.getItem('vsb_portal_batch_email_auth');
     if (rawB) savedBatchEmail = JSON.parse(rawB);
 
+    const rawBatches = localStorage.getItem('vsb_portal_batches');
+    if (rawBatches) savedBatches = JSON.parse(rawBatches);
+
     const rawSec = localStorage.getItem('vsb_portal_sections');
     if (rawSec) savedSections = JSON.parse(rawSec);
+
+    const rawBSec = localStorage.getItem('vsb_portal_batch_sections');
+    if (rawBSec) savedBatchSections = JSON.parse(rawBSec);
   } catch (e) {
     console.warn('localStorage read error:', e);
   }
@@ -221,14 +232,23 @@ window.VSB_DATA = (() => {
     ? savedBatchEmail
     : batchEmailAuth;
 
+  const finalBatches = (savedBatches && Array.isArray(savedBatches) && savedBatches.length > 0)
+    ? savedBatches
+    : BATCHES;
+
   const finalSections = (savedSections && Array.isArray(savedSections) && savedSections.length > 0)
     ? savedSections
     : SECTIONS;
 
+  const finalBatchSections = (savedBatchSections && typeof savedBatchSections === 'object')
+    ? savedBatchSections
+    : {};
+
   const VSB_OBJ = {
     DEPARTMENTS,
-    BATCHES,
+    BATCHES: finalBatches,
     SECTIONS: finalSections,
+    batchSections: finalBatchSections,
     students: finalStudents,
     teachers: finalTeachers,
     activityLogs: finalLogs,
@@ -240,7 +260,9 @@ window.VSB_DATA = (() => {
         localStorage.setItem('vsb_portal_teachers', JSON.stringify(this.teachers || []));
         localStorage.setItem('vsb_portal_activity_logs', JSON.stringify(this.activityLogs || []));
         localStorage.setItem('vsb_portal_batch_email_auth', JSON.stringify(this.batchEmailAuth || {}));
+        localStorage.setItem('vsb_portal_batches', JSON.stringify(this.BATCHES || []));
         localStorage.setItem('vsb_portal_sections', JSON.stringify(this.SECTIONS || []));
+        localStorage.setItem('vsb_portal_batch_sections', JSON.stringify(this.batchSections || {}));
       } catch (e) {
         console.warn('localStorage save error:', e);
       }
