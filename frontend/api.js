@@ -1,7 +1,7 @@
 // VSB Portal Django API Client with Local & Storage Fallback
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000/api'
-  : 'https://vsb-portal-backend.onrender.com/api';
+  : 'https://vsb-student-portel.onrender.com/api';
 
 window.VSB_API = {
   isOnline: false,

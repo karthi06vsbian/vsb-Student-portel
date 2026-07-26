@@ -1869,23 +1869,20 @@ function UploadTile({ label, value, edit, onChange, icon, defaultFilename, defau
 }
 
 window.StudentDashboard = StudentDashboard;
-// Teacher Login — username/password, then immediate dashboard access
+// Teacher Login — simple single login form (Username + Password)
 function TeacherLogin({ onNavigate }) {
   const [username, setUsername] = useState('ramesh.m');
   const [password, setPassword] = useState('teacher123');
   const [showPw, setShowPw] = useState(false);
-  const [dept, setDept] = useState('CSE');
-  const [batch, setBatch] = useState('2024-2028');
-  const [section, setSection] = useState('ALL');
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   async function login(e) {
     if (e) e.preventDefault();
     setLoading(true);
-    setErrorMessage('');
     if (!window.VSB_DATA) window.VSB_DATA = {};
-    window.VSB_DATA.selectedFilter = { dept: dept || 'CSE', batch: batch || '2024-2028', section: section || 'ALL' };
+    if (!window.VSB_DATA.selectedFilter) {
+      window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
+    }
     try {
       const teacher = await window.VSB_API.loginTeacher(username);
       if (teacher && teacher.id) window.VSB_DATA.currentTeacherId = teacher.id;
@@ -1908,13 +1905,13 @@ function TeacherLogin({ onNavigate }) {
             Manage your <span className="grad-text">department roster</span> in one place.
           </h1>
           <p style={{ fontSize: '1.05rem' }} className="mb-6">
-            Log in with your VSB faculty credentials to manage student login accounts, upload batch CSV files, approve profile updates, and export analytics.
+            Log in with your VSB faculty credentials to view student rosters, choose departments, upload CSV files, approve profile updates, and export reports.
           </p>
           <div className="grid-2">
             <GlassCard className="p-4">
               <Icon name="filter" size={20} style={{ color: 'var(--brand-primary)', marginBottom: 8 }} />
               <div className="text-sm font-semibold mb-1">Filter-first workflow</div>
-              <div className="text-xs text-muted">Select your target dept, batch & section to view live student records.</div>
+              <div className="text-xs text-muted">Select department, batch & section anytime from your dashboard.</div>
             </GlassCard>
             <GlassCard className="p-4">
               <Icon name="download" size={20} style={{ color: 'var(--accent)', marginBottom: 8 }} />
@@ -1937,7 +1934,7 @@ function TeacherLogin({ onNavigate }) {
             </div>
 
             <form onSubmit={login}>
-              <label className="field-label">Username</label>
+              <label className="field-label">Faculty Username</label>
               <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="ramesh.m" required />
 
               <label className="field-label mt-4">Password</label>
@@ -1948,46 +1945,12 @@ function TeacherLogin({ onNavigate }) {
                 </button>
               </div>
 
-              <div className="grid-3 mt-4 gap-2">
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Department</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={dept} onChange={e => setDept(e.target.value)}>
-                    <option value="CSE">CSE</option>
-                    <option value="IT">IT</option>
-                    <option value="AIDS">AIDS</option>
-                    <option value="ECE">ECE</option>
-                    <option value="EEE">EEE</option>
-                    <option value="MECH">MECH</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Batch</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={batch} onChange={e => setBatch(e.target.value)}>
-                    <option value="2024-2028">2024-28</option>
-                    <option value="2023-2027">2023-27</option>
-                    <option value="2022-2026">2022-26</option>
-                    <option value="2025-2029">2025-29</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Section</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={section} onChange={e => setSection(e.target.value)}>
-                    <option value="ALL">All Sec</option>
-                    <option value="A">Sec A</option>
-                    <option value="B">Sec B</option>
-                    <option value="C">Sec C</option>
-                  </select>
-                </div>
-              </div>
-
               <div className="flex items-center justify-between mt-4">
                 <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
                   <input type="checkbox" defaultChecked /> Remember me
                 </label>
                 <a href="#/teacher-login" onClick={e => { e.preventDefault(); alert('Demo password is: teacher123'); }} className="text-sm" style={{ color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Forgot password?</a>
               </div>
-
-              {errorMessage && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{errorMessage}</div>}
 
               <button type="submit" className="btn btn-primary w-full mt-6" disabled={loading}>
                 {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In to Faculty Portal</>}
@@ -2018,7 +1981,7 @@ function TeacherDashboard({ onNavigate }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState(() => {
-    return window.VSB_DATA.selectedFilter || { dept: 'CSE', batch: '2024-2028', section: 'ALL' };
+    return (window.VSB_DATA && window.VSB_DATA.selectedFilter) || { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
   });
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -2039,6 +2002,19 @@ function TeacherDashboard({ onNavigate }) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const importFileInputRef = useRef(null);
+
+  const departmentsList = (window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || [
+    { code: 'CSE', name: 'Computer Science & Engineering', hod: 'Dr. Ramesh Kumar M.', color: '#2563EB' },
+    { code: 'IT', name: 'Information Technology', hod: 'Dr. Bhuvaneswari S.', color: '#8B5CF6' },
+    { code: 'AIDS', name: 'AI & Data Science', hod: 'Dr. Karthikeyan V.', color: '#EC4899' },
+    { code: 'ECE', name: 'Electronics & Communication', hod: 'Dr. Palanivel R.', color: '#10B981' },
+    { code: 'EEE', name: 'Electrical & Electronics', hod: 'Dr. Meenakshi Sundaram', color: '#F59E0B' },
+    { code: 'MECH', name: 'Mechanical Engineering', hod: 'Dr. Selvakumar A.', color: '#EF4444' },
+    { code: 'CIVIL', name: 'Civil Engineering', hod: 'Dr. Kanagaraj T.', color: '#06B6D4' }
+  ];
+
+  const batchesList = (window.VSB_DATA && window.VSB_DATA.BATCHES) || ['2022-2026', '2023-2027', '2024-2028', '2025-2029'];
+  const sectionsList = (window.VSB_DATA && window.VSB_DATA.SECTIONS) || ['A', 'B', 'C', 'D'];
 
   useEffect(() => {
     let active = true;
@@ -2226,7 +2202,7 @@ function TeacherDashboard({ onNavigate }) {
       if (!deptCode || deptCode === 'NULL') {
         deptCode = (targetDept && targetDept !== 'ALL') ? targetDept : (filter.dept !== 'ALL' ? filter.dept : 'CSE');
       }
-      const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.code === deptCode) || window.VSB_DATA.DEPARTMENTS[0];
+      const deptObj = departmentsList.find(d => d.code === deptCode) || departmentsList[0];
 
       let batch = '';
       const yearVal = indexes.year !== -1 ? String(row[indexes.year] || '').trim() : '';
@@ -2331,13 +2307,13 @@ function TeacherDashboard({ onNavigate }) {
       await window.VSB_API.bulkImportStudents(importParsedStudents);
       
       window.VSB_DATA.activityLogs = [{
-        id: (window.VSB_DATA.activityLogs || []).length + 1,
+        id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
         actor: 'Faculty Advisor',
         action: 'Imported',
         target: `${importParsedStudents.length} students (Batch ${targetBatch}) from ${importFileName}`,
         time: 'Just now',
         color: 'accent'
-      }, ...(window.VSB_DATA.activityLogs || [])];
+      }, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
       
       setImportedCount(importParsedStudents.length);
       setImportStep('done');
@@ -2371,7 +2347,7 @@ function TeacherDashboard({ onNavigate }) {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Dr. Ramesh Kumar M. · CSE HOD</div>
+              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Dr. Ramesh Kumar M. · Faculty Portal</div>
               <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)' }}>Faculty Dashboard</h1>
             </div>
             <div className="flex gap-2">
@@ -2384,18 +2360,18 @@ function TeacherDashboard({ onNavigate }) {
             <div className="flex items-center gap-3 mb-4 active-filter-header" style={{ flexWrap: 'wrap' }}>
               <Icon name="filter" size={18} style={{ color: 'var(--brand-primary)' }} />
               <div className="font-semibold">Active Filter</div>
-              <span className="chip chip-brand">{filter.dept}</span>
-              <span className="chip chip-accent">{filter.batch}</span>
+              <span className="chip chip-brand">{filter.dept === 'ALL' ? 'All Depts' : filter.dept}</span>
+              <span className="chip chip-accent">{filter.batch === 'ALL' ? 'All Batches' : filter.batch}</span>
               <span className="chip">Section {filter.section === 'ALL' ? 'All' : filter.section}</span>
               <span className="text-sm text-muted matched-label" style={{ marginLeft: 'auto' }}>{filtered.length} students matched</span>
             </div>
             <div className="filter-row">
               <FilterSelect label="Department" value={filter.dept} onChange={v => setFilter({ ...filter, dept: v })}
-                options={[{ v: 'ALL', l: 'All Departments' }, ...window.VSB_DATA.DEPARTMENTS.map(d => ({ v: d.code, l: `${d.code} — ${d.name}` }))]} />
+                options={[{ v: 'ALL', l: 'All Departments' }, ...departmentsList.map(d => ({ v: d.code, l: `${d.code} — ${d.name}` }))]} />
               <FilterSelect label="Batch" value={filter.batch} onChange={v => setFilter({ ...filter, batch: v })}
-                options={[{ v: 'ALL', l: 'All Batches' }, ...window.VSB_DATA.BATCHES.map(b => ({ v: b, l: b }))]} />
+                options={[{ v: 'ALL', l: 'All Batches' }, ...batchesList.map(b => ({ v: b, l: b }))]} />
               <FilterSelect label="Section" value={filter.section} onChange={v => setFilter({ ...filter, section: v })}
-                options={[{ v: 'ALL', l: 'All Sections' }, ...window.VSB_DATA.SECTIONS.map(s => ({ v: s, l: `Section ${s}` }))]} />
+                options={[{ v: 'ALL', l: 'All Sections' }, ...sectionsList.map(s => ({ v: s, l: `Section ${s}` }))]} />
               <button className="btn btn-ghost" style={{ alignSelf: 'flex-end', height: 48 }} onClick={() => setFilter({ dept: 'ALL', batch: 'ALL', section: 'ALL' })}>
                 <Icon name="close" size={16} /> Reset
               </button>
@@ -2563,6 +2539,7 @@ function TeacherDashboard({ onNavigate }) {
                       <td>
                         <div className="flex gap-1">
                           <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} onClick={() => {
+                            if (!window.VSB_DATA) window.VSB_DATA = {};
                             window.VSB_DATA.currentStudentRegNum = regNum;
                             onNavigate('/student');
                           }}><Icon name="eye" size={14} /></button>
@@ -2633,21 +2610,21 @@ function TeacherDashboard({ onNavigate }) {
                   <div>
                     <label className="field-label">Target Batch</label>
                     <select className="input" value={targetBatch} onChange={e => setTargetBatch(e.target.value)}>
-                      {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                      {batchesList.map(b => <option key={b} value={b}>{b}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">Department</label>
                     <select className="input" value={targetDept} onChange={e => setTargetDept(e.target.value)}>
                       <option value="ALL">Auto / Sheet Dept</option>
-                      {window.VSB_DATA.DEPARTMENTS.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
+                      {departmentsList.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">Section</label>
                     <select className="input" value={targetSec} onChange={e => setTargetSec(e.target.value)}>
                       <option value="ALL">Auto / Sheet Section</option>
-                      {window.VSB_DATA.SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+                      {sectionsList.map(s => <option key={s} value={s}>Section {s}</option>)}
                     </select>
                   </div>
                 </div>

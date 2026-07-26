@@ -1,20 +1,17 @@
-// Teacher Login — username/password, then immediate dashboard access
+// Teacher Login — simple single login form (Username + Password)
 function TeacherLogin({ onNavigate }) {
   const [username, setUsername] = useState('ramesh.m');
   const [password, setPassword] = useState('teacher123');
   const [showPw, setShowPw] = useState(false);
-  const [dept, setDept] = useState('CSE');
-  const [batch, setBatch] = useState('2024-2028');
-  const [section, setSection] = useState('ALL');
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   async function login(e) {
     if (e) e.preventDefault();
     setLoading(true);
-    setErrorMessage('');
     if (!window.VSB_DATA) window.VSB_DATA = {};
-    window.VSB_DATA.selectedFilter = { dept: dept || 'CSE', batch: batch || '2024-2028', section: section || 'ALL' };
+    if (!window.VSB_DATA.selectedFilter) {
+      window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
+    }
     try {
       const teacher = await window.VSB_API.loginTeacher(username);
       if (teacher && teacher.id) window.VSB_DATA.currentTeacherId = teacher.id;
@@ -37,13 +34,13 @@ function TeacherLogin({ onNavigate }) {
             Manage your <span className="grad-text">department roster</span> in one place.
           </h1>
           <p style={{ fontSize: '1.05rem' }} className="mb-6">
-            Log in with your VSB faculty credentials to manage student login accounts, upload batch CSV files, approve profile updates, and export analytics.
+            Log in with your VSB faculty credentials to view student rosters, choose departments, upload CSV files, approve profile updates, and export reports.
           </p>
           <div className="grid-2">
             <GlassCard className="p-4">
               <Icon name="filter" size={20} style={{ color: 'var(--brand-primary)', marginBottom: 8 }} />
               <div className="text-sm font-semibold mb-1">Filter-first workflow</div>
-              <div className="text-xs text-muted">Select your target dept, batch & section to view live student records.</div>
+              <div className="text-xs text-muted">Select department, batch & section anytime from your dashboard.</div>
             </GlassCard>
             <GlassCard className="p-4">
               <Icon name="download" size={20} style={{ color: 'var(--accent)', marginBottom: 8 }} />
@@ -66,7 +63,7 @@ function TeacherLogin({ onNavigate }) {
             </div>
 
             <form onSubmit={login}>
-              <label className="field-label">Username</label>
+              <label className="field-label">Faculty Username</label>
               <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="ramesh.m" required />
 
               <label className="field-label mt-4">Password</label>
@@ -77,46 +74,12 @@ function TeacherLogin({ onNavigate }) {
                 </button>
               </div>
 
-              <div className="grid-3 mt-4 gap-2">
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Department</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={dept} onChange={e => setDept(e.target.value)}>
-                    <option value="CSE">CSE</option>
-                    <option value="IT">IT</option>
-                    <option value="AIDS">AIDS</option>
-                    <option value="ECE">ECE</option>
-                    <option value="EEE">EEE</option>
-                    <option value="MECH">MECH</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Batch</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={batch} onChange={e => setBatch(e.target.value)}>
-                    <option value="2024-2028">2024-28</option>
-                    <option value="2023-2027">2023-27</option>
-                    <option value="2022-2026">2022-26</option>
-                    <option value="2025-2029">2025-29</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label" style={{ fontSize: '0.75rem' }}>Section</label>
-                  <select className="input text-xs" style={{ padding: '8px 6px' }} value={section} onChange={e => setSection(e.target.value)}>
-                    <option value="ALL">All Sec</option>
-                    <option value="A">Sec A</option>
-                    <option value="B">Sec B</option>
-                    <option value="C">Sec C</option>
-                  </select>
-                </div>
-              </div>
-
               <div className="flex items-center justify-between mt-4">
                 <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
                   <input type="checkbox" defaultChecked /> Remember me
                 </label>
                 <a href="#/teacher-login" onClick={e => { e.preventDefault(); alert('Demo password is: teacher123'); }} className="text-sm" style={{ color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Forgot password?</a>
               </div>
-
-              {errorMessage && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{errorMessage}</div>}
 
               <button type="submit" className="btn btn-primary w-full mt-6" disabled={loading}>
                 {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In to Faculty Portal</>}

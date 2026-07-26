@@ -3,7 +3,7 @@ function TeacherDashboard({ onNavigate }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState(() => {
-    return window.VSB_DATA.selectedFilter || { dept: 'CSE', batch: '2024-2028', section: 'ALL' };
+    return (window.VSB_DATA && window.VSB_DATA.selectedFilter) || { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
   });
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -24,6 +24,19 @@ function TeacherDashboard({ onNavigate }) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const importFileInputRef = useRef(null);
+
+  const departmentsList = (window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || [
+    { code: 'CSE', name: 'Computer Science & Engineering', hod: 'Dr. Ramesh Kumar M.', color: '#2563EB' },
+    { code: 'IT', name: 'Information Technology', hod: 'Dr. Bhuvaneswari S.', color: '#8B5CF6' },
+    { code: 'AIDS', name: 'AI & Data Science', hod: 'Dr. Karthikeyan V.', color: '#EC4899' },
+    { code: 'ECE', name: 'Electronics & Communication', hod: 'Dr. Palanivel R.', color: '#10B981' },
+    { code: 'EEE', name: 'Electrical & Electronics', hod: 'Dr. Meenakshi Sundaram', color: '#F59E0B' },
+    { code: 'MECH', name: 'Mechanical Engineering', hod: 'Dr. Selvakumar A.', color: '#EF4444' },
+    { code: 'CIVIL', name: 'Civil Engineering', hod: 'Dr. Kanagaraj T.', color: '#06B6D4' }
+  ];
+
+  const batchesList = (window.VSB_DATA && window.VSB_DATA.BATCHES) || ['2022-2026', '2023-2027', '2024-2028', '2025-2029'];
+  const sectionsList = (window.VSB_DATA && window.VSB_DATA.SECTIONS) || ['A', 'B', 'C', 'D'];
 
   useEffect(() => {
     let active = true;
@@ -211,7 +224,7 @@ function TeacherDashboard({ onNavigate }) {
       if (!deptCode || deptCode === 'NULL') {
         deptCode = (targetDept && targetDept !== 'ALL') ? targetDept : (filter.dept !== 'ALL' ? filter.dept : 'CSE');
       }
-      const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.code === deptCode) || window.VSB_DATA.DEPARTMENTS[0];
+      const deptObj = departmentsList.find(d => d.code === deptCode) || departmentsList[0];
 
       let batch = '';
       const yearVal = indexes.year !== -1 ? String(row[indexes.year] || '').trim() : '';
@@ -316,13 +329,13 @@ function TeacherDashboard({ onNavigate }) {
       await window.VSB_API.bulkImportStudents(importParsedStudents);
       
       window.VSB_DATA.activityLogs = [{
-        id: (window.VSB_DATA.activityLogs || []).length + 1,
+        id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
         actor: 'Faculty Advisor',
         action: 'Imported',
         target: `${importParsedStudents.length} students (Batch ${targetBatch}) from ${importFileName}`,
         time: 'Just now',
         color: 'accent'
-      }, ...(window.VSB_DATA.activityLogs || [])];
+      }, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
       
       setImportedCount(importParsedStudents.length);
       setImportStep('done');
@@ -356,7 +369,7 @@ function TeacherDashboard({ onNavigate }) {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Dr. Ramesh Kumar M. · CSE HOD</div>
+              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Dr. Ramesh Kumar M. · Faculty Portal</div>
               <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)' }}>Faculty Dashboard</h1>
             </div>
             <div className="flex gap-2">
@@ -369,18 +382,18 @@ function TeacherDashboard({ onNavigate }) {
             <div className="flex items-center gap-3 mb-4 active-filter-header" style={{ flexWrap: 'wrap' }}>
               <Icon name="filter" size={18} style={{ color: 'var(--brand-primary)' }} />
               <div className="font-semibold">Active Filter</div>
-              <span className="chip chip-brand">{filter.dept}</span>
-              <span className="chip chip-accent">{filter.batch}</span>
+              <span className="chip chip-brand">{filter.dept === 'ALL' ? 'All Depts' : filter.dept}</span>
+              <span className="chip chip-accent">{filter.batch === 'ALL' ? 'All Batches' : filter.batch}</span>
               <span className="chip">Section {filter.section === 'ALL' ? 'All' : filter.section}</span>
               <span className="text-sm text-muted matched-label" style={{ marginLeft: 'auto' }}>{filtered.length} students matched</span>
             </div>
             <div className="filter-row">
               <FilterSelect label="Department" value={filter.dept} onChange={v => setFilter({ ...filter, dept: v })}
-                options={[{ v: 'ALL', l: 'All Departments' }, ...window.VSB_DATA.DEPARTMENTS.map(d => ({ v: d.code, l: `${d.code} — ${d.name}` }))]} />
+                options={[{ v: 'ALL', l: 'All Departments' }, ...departmentsList.map(d => ({ v: d.code, l: `${d.code} — ${d.name}` }))]} />
               <FilterSelect label="Batch" value={filter.batch} onChange={v => setFilter({ ...filter, batch: v })}
-                options={[{ v: 'ALL', l: 'All Batches' }, ...window.VSB_DATA.BATCHES.map(b => ({ v: b, l: b }))]} />
+                options={[{ v: 'ALL', l: 'All Batches' }, ...batchesList.map(b => ({ v: b, l: b }))]} />
               <FilterSelect label="Section" value={filter.section} onChange={v => setFilter({ ...filter, section: v })}
-                options={[{ v: 'ALL', l: 'All Sections' }, ...window.VSB_DATA.SECTIONS.map(s => ({ v: s, l: `Section ${s}` }))]} />
+                options={[{ v: 'ALL', l: 'All Sections' }, ...sectionsList.map(s => ({ v: s, l: `Section ${s}` }))]} />
               <button className="btn btn-ghost" style={{ alignSelf: 'flex-end', height: 48 }} onClick={() => setFilter({ dept: 'ALL', batch: 'ALL', section: 'ALL' })}>
                 <Icon name="close" size={16} /> Reset
               </button>
@@ -548,6 +561,7 @@ function TeacherDashboard({ onNavigate }) {
                       <td>
                         <div className="flex gap-1">
                           <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} onClick={() => {
+                            if (!window.VSB_DATA) window.VSB_DATA = {};
                             window.VSB_DATA.currentStudentRegNum = regNum;
                             onNavigate('/student');
                           }}><Icon name="eye" size={14} /></button>
@@ -618,21 +632,21 @@ function TeacherDashboard({ onNavigate }) {
                   <div>
                     <label className="field-label">Target Batch</label>
                     <select className="input" value={targetBatch} onChange={e => setTargetBatch(e.target.value)}>
-                      {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                      {batchesList.map(b => <option key={b} value={b}>{b}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">Department</label>
                     <select className="input" value={targetDept} onChange={e => setTargetDept(e.target.value)}>
                       <option value="ALL">Auto / Sheet Dept</option>
-                      {window.VSB_DATA.DEPARTMENTS.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
+                      {departmentsList.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">Section</label>
                     <select className="input" value={targetSec} onChange={e => setTargetSec(e.target.value)}>
                       <option value="ALL">Auto / Sheet Section</option>
-                      {window.VSB_DATA.SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+                      {sectionsList.map(s => <option key={s} value={s}>Section {s}</option>)}
                     </select>
                   </div>
                 </div>
