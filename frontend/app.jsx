@@ -1,4 +1,4 @@
-// Root App — router + theme + tweaks
+// Root App — router + theme + tweaks + error boundary
 const { useEffect: uE, useState: uS } = React;
 
 const DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -14,6 +14,33 @@ const ACCENTS = {
   amber:   { base: '#F59E0B', c600: '#D97706', c400: '#FCD34D', label: 'Amber' },
   rose:    { base: '#F43F5E', c600: '#E11D48', c400: '#FDA4AF', label: 'Rose' },
 };
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("VSB App Error Boundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 40, textAlign: 'center', background: '#0F172A', color: 'white' }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: 12 }}>VSB Student Information Portal</h2>
+            <p style={{ color: '#94A3B8', marginBottom: 24 }}>{this.state.error?.message || 'Rendering reset.'}</p>
+            <button className="btn btn-primary" onClick={() => { this.setState({ hasError: false, error: null }); window.location.hash = '/'; }}>Reload Home</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function useHashRoute() {
   const [route, setRoute] = uS(() => {
@@ -136,4 +163,8 @@ function NotFound({ onNavigate }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
