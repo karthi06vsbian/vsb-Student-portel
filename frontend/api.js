@@ -37,9 +37,9 @@ window.VSB_API = {
       });
       return data.student;
     } catch (err) {
-      // Persistent Fallback
-      const found = (window.VSB_DATA.students || []).find(
-        st => (st.registerNumber === username || st.rollNumber === username) && st.dob === dob
+      const list = (window.VSB_DATA && window.VSB_DATA.students) || [];
+      const found = list.find(
+        st => st && (st.registerNumber === username || st.rollNumber === username) && st.dob === dob
       );
       if (!found) throw new Error('Invalid credentials');
       return found;
@@ -55,8 +55,8 @@ window.VSB_API = {
       });
       return data.teacher;
     } catch (err) {
-      // Persistent Fallback
-      const found = (window.VSB_DATA.teachers || []).find(t => t.username === username);
+      const list = (window.VSB_DATA && window.VSB_DATA.teachers) || [];
+      const found = list.find(t => t && t.username === username);
       if (!found) return { username, name: username.replace('.', ' '), department: 'CSE', role: 'Faculty' };
       return found;
     }
@@ -71,7 +71,6 @@ window.VSB_API = {
       });
       return true;
     } catch (err) {
-      // Robust Fallback: accept admin / superadmin / vsbadmin regardless of backend offline state
       const u = String(username || '').toLowerCase().trim();
       if (u === 'admin' || u === 'superadmin' || u === 'vsbadmin') {
         return true;
@@ -86,8 +85,8 @@ window.VSB_API = {
       const data = await this.request(`/students/${regNum}/`);
       return data.student;
     } catch (err) {
-      // Persistent Fallback
-      const student = (window.VSB_DATA.students || []).find(st => st.registerNumber === regNum);
+      const list = (window.VSB_DATA && window.VSB_DATA.students) || [];
+      const student = list.find(st => st && st.registerNumber === regNum);
       if (!student) throw new Error('Student not found');
       return student;
     }
@@ -95,18 +94,20 @@ window.VSB_API = {
 
   // Save profile
   async updateStudentProfile(regNum, studentData) {
+    if (!window.VSB_DATA) window.VSB_DATA = {};
+    if (!window.VSB_DATA.students) window.VSB_DATA.students = [];
+
     try {
       const data = await this.request(`/students/${regNum}/`, {
         method: 'PUT',
         body: JSON.stringify(studentData)
       });
-      const index = window.VSB_DATA.students.findIndex(st => st.registerNumber === regNum);
+      const index = window.VSB_DATA.students.findIndex(st => st && st.registerNumber === regNum);
       if (index !== -1) window.VSB_DATA.students[index] = data.student;
       if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
       return data.student;
     } catch (err) {
-      // Persistent Fallback
-      const index = window.VSB_DATA.students.findIndex(st => st.registerNumber === regNum);
+      const index = window.VSB_DATA.students.findIndex(st => st && st.registerNumber === regNum);
       if (index !== -1) {
         window.VSB_DATA.students[index] = studentData;
       } else {
@@ -119,26 +120,29 @@ window.VSB_API = {
 
   // Teacher dashboard student list
   async getTeacherStudents(dept, batch, section) {
+    if (!window.VSB_DATA) window.VSB_DATA = {};
+    if (!window.VSB_DATA.students) window.VSB_DATA.students = [];
+
     try {
       const data = await this.request(`/students/?dept=${dept}&batch=${batch}&section=${section}`);
       if (data.students && data.students.length > 0) {
-        // Sync API students into local state and storage
         data.students.forEach(st => {
-          const idx = window.VSB_DATA.students.findIndex(x => x.registerNumber === st.registerNumber);
+          const idx = window.VSB_DATA.students.findIndex(x => x && x.registerNumber === st.registerNumber);
           if (idx !== -1) window.VSB_DATA.students[idx] = st;
           else window.VSB_DATA.students.push(st);
         });
         if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
       }
       return (window.VSB_DATA.students || []).filter(s => {
+        if (!s) return false;
         const matchesDept = !dept || dept === 'ALL' || s.department === dept;
         const matchesBatch = !batch || batch === 'ALL' || s.batch === batch;
         const matchesSec = !section || section === 'ALL' || s.section === section;
         return matchesDept && matchesBatch && matchesSec;
       });
     } catch (err) {
-      // Persistent Fallback
       return (window.VSB_DATA.students || []).filter(s => {
+        if (!s) return false;
         const matchesDept = !dept || dept === 'ALL' || s.department === dept;
         const matchesBatch = !batch || batch === 'ALL' || s.batch === batch;
         const matchesSec = !section || section === 'ALL' || s.section === section;
@@ -149,18 +153,20 @@ window.VSB_API = {
 
   // Approve student status
   async approveStudent(regNum, approvedStatus) {
+    if (!window.VSB_DATA) window.VSB_DATA = {};
+    if (!window.VSB_DATA.students) window.VSB_DATA.students = [];
+
     try {
       const data = await this.request(`/students/${regNum}/approve/`, {
         method: 'POST',
         body: JSON.stringify({ approved: approvedStatus })
       });
-      const student = window.VSB_DATA.students.find(st => st.registerNumber === regNum);
+      const student = window.VSB_DATA.students.find(st => st && st.registerNumber === regNum);
       if (student) student.approved = data.approved;
       if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
       return data.approved;
     } catch (err) {
-      // Persistent Fallback
-      const student = window.VSB_DATA.students.find(st => st.registerNumber === regNum);
+      const student = window.VSB_DATA.students.find(st => st && st.registerNumber === regNum);
       if (student) student.approved = approvedStatus;
       if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
       return approvedStatus;
@@ -169,9 +175,11 @@ window.VSB_API = {
 
   // Bulk import spreadsheet accounts
   async bulkImportStudents(students) {
-    // Write immediately to persistent storage
-    students.forEach(st => {
-      const idx = window.VSB_DATA.students.findIndex(x => x.registerNumber === st.registerNumber);
+    if (!window.VSB_DATA) window.VSB_DATA = {};
+    if (!window.VSB_DATA.students) window.VSB_DATA.students = [];
+
+    (students || []).forEach(st => {
+      const idx = window.VSB_DATA.students.findIndex(x => x && x.registerNumber === st.registerNumber);
       if (idx !== -1) window.VSB_DATA.students[idx] = st;
       else window.VSB_DATA.students.unshift(st);
     });
@@ -184,7 +192,7 @@ window.VSB_API = {
       });
       return data;
     } catch (err) {
-      return { success: true, created: students.length, updated: 0, fallback: true };
+      return { success: true, created: (students || []).length, updated: 0, fallback: true };
     }
   },
 
@@ -194,8 +202,8 @@ window.VSB_API = {
       const data = await this.request('/students/sync-initial/', {
         method: 'POST',
         body: JSON.stringify({
-          students: window.VSB_DATA.students,
-          teachers: window.VSB_DATA.teachers
+          students: (window.VSB_DATA && window.VSB_DATA.students) || [],
+          teachers: (window.VSB_DATA && window.VSB_DATA.teachers) || []
         })
       });
       console.log('Seeded database with initial portal mocks.', data);
