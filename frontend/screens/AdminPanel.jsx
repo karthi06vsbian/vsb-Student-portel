@@ -189,6 +189,7 @@ function LegendRow({ color, label, value }) {
 function AdminDepartments({ departments, setDepartments }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDept, setNewDept] = useState({ code: '', name: '', hod: '', color: '#2563EB' });
+  const [editingDept, setEditingDept] = useState(null);
   
   const handleAddDept = () => {
     const code = newDept.code.trim().toUpperCase();
@@ -217,6 +218,17 @@ function AdminDepartments({ departments, setDepartments }) {
     setNewDept({ code: '', name: '', hod: '', color: '#2563EB' });
     setShowAddForm(false);
     alert('Department added successfully!');
+  };
+
+  const handleSaveEditDept = () => {
+    if (!editingDept || !editingDept.name.trim() || !editingDept.hod.trim()) {
+      alert('Please fill all fields');
+      return;
+    }
+    const updated = departments.map(d => d.code === editingDept.code ? { ...editingDept } : d);
+    setDepartments(updated);
+    setEditingDept(null);
+    alert('Department updated successfully!');
   };
   
   return (
@@ -249,19 +261,19 @@ function AdminDepartments({ departments, setDepartments }) {
         </thead>
         <tbody>
           {departments.map(d => {
-            const studentCount = window.VSB_DATA.students.filter(s => s.department === d.code).length;
-            const facultyCount = window.VSB_DATA.teachers.filter(t => t.department === d.code).length;
+            const studentCount = ((window.VSB_DATA && window.VSB_DATA.students) || []).filter(s => s && s.department === d.code).length;
+            const facultyCount = ((window.VSB_DATA && window.VSB_DATA.teachers) || []).filter(t => t && t.department === d.code).length;
             return (
               <tr key={d.code}>
-                <td><div style={{ width: 34, height: 34, borderRadius: 8, background: `linear-gradient(135deg, ${d.color}, color-mix(in oklab, ${d.color} 60%, white))`, color: 'white', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem' }}>{d.code}</div></td>
+                <td><div style={{ width: 34, height: 34, borderRadius: 8, background: `linear-gradient(135deg, ${d.color || '#2563EB'}, color-mix(in oklab, ${d.color || '#2563EB'} 60%, white))`, color: 'white', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem' }}>{d.code}</div></td>
                 <td>{d.name}</td>
                 <td>{d.hod}</td>
                 <td className="mono">{studentCount}</td>
                 <td className="mono">{facultyCount}</td>
                 <td>
                   <div className="flex gap-1">
-                    <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} onClick={() => alert(`Edit: ${d.name} (HOD: ${d.hod})`)}><Icon name="edit" size={14} /></button>
-                    <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} onClick={() => { if(confirm(`Delete ${d.name}?`)) setDepartments(departments.filter(dp => dp.code !== d.code)); }}><Icon name="trash" size={14} /></button>
+                    <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Department" onClick={() => setEditingDept({ ...d })}><Icon name="edit" size={14} /></button>
+                    <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} title="Delete Department" onClick={() => { if(confirm(`Delete ${d.name}?`)) setDepartments(departments.filter(dp => dp.code !== d.code)); }}><Icon name="trash" size={14} /></button>
                   </div>
                 </td>
               </tr>
@@ -269,6 +281,41 @@ function AdminDepartments({ departments, setDepartments }) {
           })}
         </tbody>
       </table>
+
+      {editingDept && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <GlassCard strong className="p-6" style={{ width: '100%', maxWidth: 500 }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Edit Department ({editingDept.code})</h3>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div>
+                <label className="field-label">Department Code</label>
+                <input className="input mono" value={editingDept.code} disabled style={{ opacity: 0.7 }} />
+              </div>
+              <div>
+                <label className="field-label">Department Name</label>
+                <input className="input" value={editingDept.name} onChange={e => setEditingDept({ ...editingDept, name: e.target.value })} />
+              </div>
+              <div>
+                <label className="field-label">HOD Name</label>
+                <input className="input" value={editingDept.hod} onChange={e => setEditingDept({ ...editingDept, hod: e.target.value })} />
+              </div>
+              <div>
+                <label className="field-label">Color</label>
+                <input type="color" className="input" value={editingDept.color || '#2563EB'} onChange={e => setEditingDept({ ...editingDept, color: e.target.value })} />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <button className="btn btn-ghost" onClick={() => setEditingDept(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveEditDept}>Save Changes</button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
     </GlassCard>
   );
 }
@@ -277,6 +324,7 @@ function AdminTeachers({ teachers, setTeachers, departments }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const defaultDepartment = departments[0]?.code || 'CSE';
   const [newTeacher, setNewTeacher] = useState({ id: '', name: '', username: '', department: defaultDepartment, role: 'Faculty', email: '' });
+  const [editingTeacher, setEditingTeacher] = useState(null);
 
   useEffect(() => {
     if (!departments.some(d => d.code === newTeacher.department)) {
@@ -293,6 +341,17 @@ function AdminTeachers({ teachers, setTeachers, departments }) {
     } else {
       alert('Please fill all required fields');
     }
+  };
+
+  const handleSaveEditTeacher = () => {
+    if (!editingTeacher || !editingTeacher.name.trim() || !editingTeacher.username.trim() || !editingTeacher.email.trim()) {
+      alert('Please fill all required fields');
+      return;
+    }
+    const updated = teachers.map(t => t.id === editingTeacher.id ? { ...editingTeacher } : t);
+    setTeachers(updated);
+    setEditingTeacher(null);
+    alert('Faculty account updated successfully!');
   };
   
   return (
@@ -356,15 +415,62 @@ function AdminTeachers({ teachers, setTeachers, departments }) {
               <td className="text-sm text-muted">{t.lastLogin}</td>
               <td>
                 <div className="flex gap-1">
-                  <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} onClick={() => alert(`Edit teacher: ${t.name} (${t.username})`)}><Icon name="edit" size={14} /></button>
-                  <button className="btn btn-ghost btn-icon" style={{ padding: 6 }}><Icon name="settings" size={14} /></button>
-                  <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} onClick={() => { if(confirm(`Delete ${t.name}?`)) setTeachers(teachers.filter(tr => tr.id !== t.id)); }}><Icon name="trash" size={14} /></button>
+                  <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Faculty" onClick={() => setEditingTeacher({ ...t })}><Icon name="edit" size={14} /></button>
+                  <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} title="Delete Faculty" onClick={() => { if(confirm(`Delete ${t.name}?`)) setTeachers(teachers.filter(tr => tr.id !== t.id)); }}><Icon name="trash" size={14} /></button>
                 </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {editingTeacher && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <GlassCard strong className="p-6" style={{ width: '100%', maxWidth: 550 }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Edit Faculty Account ({editingTeacher.id})</h3>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div className="grid-2">
+                <div>
+                  <label className="field-label">Name</label>
+                  <input className="input" value={editingTeacher.name} onChange={e => setEditingTeacher({ ...editingTeacher, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Username</label>
+                  <input className="input" value={editingTeacher.username} onChange={e => setEditingTeacher({ ...editingTeacher, username: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div>
+                  <label className="field-label">Department</label>
+                  <select className="input" value={editingTeacher.department} onChange={e => setEditingTeacher({ ...editingTeacher, department: e.target.value })}>
+                    {departments.map(d => <option key={d.code} value={d.code}>{d.code} - {d.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Role</label>
+                  <select className="input" value={editingTeacher.role} onChange={e => setEditingTeacher({ ...editingTeacher, role: e.target.value })}>
+                    <option value="Faculty">Faculty</option>
+                    <option value="HOD">HOD</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="field-label">Email</label>
+                <input className="input" type="email" value={editingTeacher.email} onChange={e => setEditingTeacher({ ...editingTeacher, email: e.target.value })} />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <button className="btn btn-ghost" onClick={() => setEditingTeacher(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveEditTeacher}>Save Changes</button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
     </GlassCard>
   );
 }
@@ -375,7 +481,26 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
   const [filterSec, setFilterSec] = useState('ALL');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const handleSaveAdminStudentEdit = async () => {
+    if (!editingStudent || !editingStudent.name.trim()) {
+      alert('Please fill student name');
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const updated = await window.VSB_API.updateStudentProfile(editingStudent.registerNumber, editingStudent);
+      if (onDataChanged) onDataChanged();
+      setEditingStudent(null);
+      alert('Student record updated successfully!');
+    } catch (err) {
+      alert('Error updating student: ' + err.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
   const perPage = 10;
 
   const defaultDepartment = departments[0]?.code || 'CSE';
@@ -642,7 +767,14 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
                   <td className="mono text-xs text-muted">{s.mysqlId || `mysql_${s.registerNumber.toLowerCase()}`}</td>
                   <td>
                     <div className="flex gap-1">
-                      <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="View details" onClick={() => alert(`Student: ${s.name}\nReg #: ${s.registerNumber}\nRoll #: ${s.rollNumber}\nDept: ${s.department}\nBatch: ${s.batch}\nSection: ${s.section}\nDOB: ${s.dob}\nPhone: ${s.phone}`)}><Icon name="eye" size={14} /></button>
+                      <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="View & Edit Full Profile" onClick={() => {
+                        if (!window.VSB_DATA) window.VSB_DATA = {};
+                        window.VSB_DATA.currentStudentRegNum = s.registerNumber;
+                        window.VSB_DATA.currentUserRole = 'admin';
+                        if (typeof setTab === 'function') setTab('overview');
+                        window.location.hash = '/student';
+                      }}><Icon name="eye" size={14} /></button>
+                      <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Record" onClick={() => setEditingStudent({ ...s })}><Icon name="edit" size={14} /></button>
                       <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} title="Delete login" onClick={() => handleDeleteStudent(s.registerNumber, s.name)}><Icon name="trash" size={14} /></button>
                     </div>
                   </td>
@@ -673,6 +805,106 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
             <button className="btn btn-ghost btn-sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         </div>
+
+      {editingStudent && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20
+        }} className="fade-in">
+          <GlassCard strong className="p-6" style={{
+            width: '100%',
+            maxWidth: 850,
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 style={{ fontSize: '1.4rem' }}>Edit Student Account — {editingStudent.name}</h2>
+                <p className="text-xs text-muted">Register Number: <strong className="mono">{editingStudent.registerNumber}</strong></p>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditingStudent(null)}><Icon name="x" size={18} /></button>
+            </div>
+
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Student Name</label>
+                  <input className="input" value={editingStudent.name || ''} onChange={e => setEditingStudent({ ...editingStudent, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Roll Number</label>
+                  <input className="input mono" value={editingStudent.rollNumber || ''} onChange={e => setEditingStudent({ ...editingStudent, rollNumber: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Date of Birth</label>
+                  <input className="input" type="date" value={editingStudent.dob || ''} onChange={e => setEditingStudent({ ...editingStudent, dob: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Department</label>
+                  <select className="input" value={editingStudent.department || 'CSE'} onChange={e => {
+                    const deptObj = departments.find(d => d.code === e.target.value);
+                    setEditingStudent({ ...editingStudent, department: e.target.value, departmentName: deptObj ? deptObj.name : editingStudent.departmentName });
+                  }}>
+                    {departments.map(d => <option key={d.code} value={d.code}>{d.code} - {d.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Batch</label>
+                  <select className="input" value={editingStudent.batch || '2024-2028'} onChange={e => setEditingStudent({ ...editingStudent, batch: e.target.value })}>
+                    {((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]).map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Section</label>
+                  <select className="input" value={editingStudent.section || 'A'} onChange={e => setEditingStudent({ ...editingStudent, section: e.target.value })}>
+                    {((window.VSB_DATA && window.VSB_DATA.SECTIONS) || ["A", "B", "C", "D"]).map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Year of Study</label>
+                  <input className="input" type="number" min="1" max="4" value={editingStudent.year || 1} onChange={e => setEditingStudent({ ...editingStudent, year: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="field-label">CGPA</label>
+                  <input className="input" type="number" step="0.01" min="0" max="10" value={editingStudent.cgpa || ''} onChange={e => setEditingStudent({ ...editingStudent, cgpa: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Arrears</label>
+                  <input className="input" type="number" min="0" value={editingStudent.arrears || 0} onChange={e => setEditingStudent({ ...editingStudent, arrears: Number(e.target.value) })} />
+                </div>
+              </div>
+
+              <div className="grid-2">
+                <div>
+                  <label className="field-label">Email Address</label>
+                  <input className="input" type="email" value={editingStudent.email || ''} onChange={e => setEditingStudent({ ...editingStudent, email: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Phone Number</label>
+                  <input className="input" value={editingStudent.phone || ''} onChange={e => setEditingStudent({ ...editingStudent, phone: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                <button className="btn btn-ghost" onClick={() => setEditingStudent(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveAdminStudentEdit} disabled={savingEdit}>
+                  {savingEdit ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Save Changes</>}
+                </button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
       </GlassCard>
     </>
   );
