@@ -75,16 +75,27 @@ function StudentDashboard({ onNavigate }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div className="chip chip-brand mb-2"><Icon name="student" size={14} /> Student Portal</div>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)' }}>My Profile</h1>
-            <p className="mt-1">Keep every field up to date — your record is used for scholarships and NAAC audits.</p>
+            {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' ? (
+              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Faculty Editing Mode · {s.name}</div>
+            ) : (window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'admin' ? (
+              <div className="chip chip-violet mb-2"><Icon name="shield" size={14} /> Admin Viewing Mode · {s.name}</div>
+            ) : (
+              <div className="chip chip-brand mb-2"><Icon name="student" size={14} /> Student Portal</div>
+            )}
+            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)' }}>{(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' ? `Edit Record: ${s.name}` : 'My Profile'}</h1>
+            <p className="mt-1">Keep every field up to date — changes sync directly across portal & database.</p>
           </div>
           <div className="flex gap-2">
-            <button className={`btn ${editMode ? 'btn-ghost' : 'btn-ghost'}`} onClick={() => setEditMode(!editMode)}>
+            {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' && (
+              <button className="btn btn-ghost" onClick={() => onNavigate('/teacher')}>
+                ← Back to Teacher Dashboard
+              </button>
+            )}
+            <button className={`btn ${editMode ? 'btn-ghost' : 'btn-accent'}`} onClick={() => setEditMode(!editMode)}>
               <Icon name="edit" size={16} /> {editMode ? 'Cancel Edit' : 'Edit Profile'}
             </button>
             <button className="btn btn-primary" onClick={saveProfile}>
-              {saved ? <><Icon name="check" size={16} /> Saved</> : <><Icon name="upload" size={16} /> Save to Firestore</>}
+              {saved ? <><Icon name="check" size={16} /> Saved</> : <><Icon name="upload" size={16} /> Save Changes</>}
             </button>
           </div>
         </div>

@@ -66,33 +66,59 @@ TEMPLATES = [
 WSGI_APPLICATION = 'vsb_project.wsgi.application'
 
 # Database configuration environment parameters
-DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
-DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
-DB_NAME = os.environ.get('DB_NAME', 'vsb_db')
-DB_PORT = os.environ.get('DB_PORT', '3306')
+from urllib.parse import urlparse
+
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('MYSQL_URL')
+if DATABASE_URL:
+    try:
+        parsed_url = urlparse(DATABASE_URL)
+        DB_HOST = parsed_url.hostname or '127.0.0.1'
+        DB_USER = parsed_url.username or 'root'
+        DB_PASSWORD = parsed_url.password or ''
+        DB_NAME = (parsed_url.path or '/vsb_db').lstrip('/')
+        DB_PORT = str(parsed_url.port or 3306)
+    except Exception as e:
+        DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
+        DB_USER = os.environ.get('DB_USER', 'root')
+        DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+        DB_NAME = os.environ.get('DB_NAME', 'vsb_db')
+        DB_PORT = os.environ.get('DB_PORT', '3306')
+else:
+    DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+    DB_NAME = os.environ.get('DB_NAME', 'vsb_db')
+    DB_PORT = os.environ.get('DB_PORT', '3306')
 
 # Database Setup with Automatic Database Creation and SQLite fallback
 mysql_available = False
 try:
-    ssl_config = {'ssl': {}} if DB_HOST != '127.0.0.1' else None
-    conn = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        port=int(DB_PORT),
-        connect_timeout=5,
-        ssl=ssl_config
-    )
+    connect_kwargs = {
+        'host': DB_HOST,
+        'user': DB_USER,
+        'password': DB_PASSWORD,
+        'port': int(DB_PORT),
+        'connect_timeout': 5,
+    }
+    if DB_HOST not in ('127.0.0.1', 'localhost'):
+        connect_kwargs['ssl'] = {'ssl': True} if os.environ.get('DB_SSL', 'false').lower() == 'true' else None
+
+    conn = pymysql.connect(**{k: v for k, v in connect_kwargs.items() if v is not None})
     with conn.cursor() as cursor:
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}`")
     conn.close()
     mysql_available = True
 except Exception as e:
     print(f"Could not connect to MySQL database: {e}")
-    pass
 
 if mysql_available:
+    mysql_options = {
+        'charset': 'utf8mb4',
+        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+    }
+    if os.environ.get('DB_SSL', 'false').lower() == 'true':
+        mysql_options['ssl'] = {'ssl': True}
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -101,11 +127,7 @@ if mysql_available:
             'PASSWORD': DB_PASSWORD,
             'HOST': DB_HOST,
             'PORT': DB_PORT,
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-                'ssl': {'ssl': {}} if DB_HOST != '127.0.0.1' else None
-            }
+            'OPTIONS': mysql_options
         }
     }
     print(f"Database Backend: MySQL ({DB_NAME} on {DB_HOST})")

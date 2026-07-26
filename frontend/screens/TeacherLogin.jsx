@@ -60,6 +60,20 @@ function TeacherLogin({ onNavigate }) {
               </div>
             </div>
 
+            <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--accent)' }}>
+              <div className="text-xs font-semibold mb-2" style={{ color: 'var(--accent)' }}>Quick Demo Faculty Login:</div>
+              <button type="button" className="btn btn-ghost btn-sm w-full" style={{ fontSize: '0.82rem', background: 'color-mix(in oklab, var(--accent) 12%, transparent)', justifyContent: 'center' }} onClick={() => {
+                setUsername('ramesh.m');
+                setPassword('teacher123');
+                if (!window.VSB_DATA) window.VSB_DATA = {};
+                window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: 'ALL', section: 'ALL' };
+                window.VSB_DATA.currentUserRole = 'teacher';
+                onNavigate('/teacher');
+              }}>
+                ⚡ Dummy Faculty Login (Dr. Ramesh Kumar M. - ramesh.m)
+              </button>
+            </div>
+
             <form onSubmit={login}>
               <label className="field-label">Faculty Username</label>
               <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="ramesh.m" required />

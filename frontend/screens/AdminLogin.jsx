@@ -56,8 +56,21 @@ function AdminLogin({ onNavigate }) {
         </div>
 
         <GlassCard strong className="p-8">
-          <div className="chip chip-violet mb-6" style={{ width: '100%', justifyContent: 'center', padding: '8px 14px' }}>
+          <div className="chip chip-violet mb-4" style={{ width: '100%', justifyContent: 'center', padding: '8px 14px' }}>
             <Icon name="shield" size={14} /> Access URL — /admin
+          </div>
+
+          <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed #8B5CF6' }}>
+            <div className="text-xs font-semibold mb-2" style={{ color: '#8B5CF6' }}>Quick Demo Admin Login:</div>
+            <button type="button" className="btn btn-ghost btn-sm w-full" style={{ fontSize: '0.82rem', background: 'color-mix(in oklab, #8B5CF6 12%, transparent)', color: '#8B5CF6', justifyContent: 'center' }} onClick={() => {
+              setUsername('admin');
+              setPassword('admin');
+              if (!window.VSB_DATA) window.VSB_DATA = {};
+              window.VSB_DATA.currentUserRole = 'admin';
+              onNavigate('/admin/dashboard');
+            }}>
+              ⚡ Dummy Admin Login (admin / admin)
+            </button>
           </div>
 
           <form onSubmit={login}>

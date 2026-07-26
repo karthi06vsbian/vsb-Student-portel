@@ -56,6 +56,7 @@ function TopBar({ onNavigate, currentRoute, theme, onToggleTheme }) {
   const links = [
     { label: 'Student', route: '/student-login' },
     { label: 'Teacher', route: '/teacher-login' },
+    { label: 'Admin', route: '/admin' },
   ];
   return (
     <div style={{ position: 'fixed', top: 20, left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
@@ -1256,9 +1257,31 @@ function StudentLogin({ onNavigate }) {
                 </div>
 
                 <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--brand-primary)' }}>
-                  <div className="text-xs font-semibold" style={{ color: 'var(--brand-primary)' }}>Default Demo Student Logins:</div>
-                  <div className="text-xs text-subtle mt-1">Register #: <strong className="mono">2023CS042</strong> · DOB: <strong className="mono">2005-04-18</strong></div>
-                  <div className="text-xs text-subtle">Or use any imported Reg #: <strong className="mono">24104064</strong>, <strong className="mono">24104066</strong></div>
+                  <div className="text-xs font-semibold mb-2" style={{ color: 'var(--brand-primary)' }}>Quick Demo Student Logins:</div>
+                  <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: '0.78rem', background: 'color-mix(in oklab, var(--brand-primary) 12%, transparent)' }} onClick={() => {
+                      setRegNum('2023CS042');
+                      setDob('2005-04-18');
+                      setTimeout(() => {
+                        window.VSB_DATA.currentStudentRegNum = '2023CS042';
+                        window.VSB_DATA.currentUserRole = 'student';
+                        onNavigate('/student');
+                      }, 100);
+                    }}>
+                      ⚡ Demo Student (2023CS042)
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: '0.78rem', background: 'color-mix(in oklab, var(--accent) 12%, transparent)' }} onClick={() => {
+                      setRegNum('24104064');
+                      setDob('2005-01-01');
+                      setTimeout(() => {
+                        window.VSB_DATA.currentStudentRegNum = '24104064';
+                        window.VSB_DATA.currentUserRole = 'student';
+                        onNavigate('/student');
+                      }, 100);
+                    }}>
+                      ⚡ Student (24104064)
+                    </button>
+                  </div>
                 </div>
 
                 <label className="field-label">Register Number</label>
@@ -1270,7 +1293,7 @@ function StudentLogin({ onNavigate }) {
                 {error && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{error}</div>}
 
                 <button className="btn btn-primary w-full mt-6" onClick={login} disabled={loading}>
-                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student (2023CS042)</>}
+                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student</>}
                 </button>
               </>
             ) : (
@@ -1427,16 +1450,27 @@ function StudentDashboard({ onNavigate }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div className="chip chip-brand mb-2"><Icon name="student" size={14} /> Student Portal</div>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)' }}>My Profile</h1>
-            <p className="mt-1">Keep every field up to date — your record is used for scholarships and NAAC audits.</p>
+            {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' ? (
+              <div className="chip chip-accent mb-2"><Icon name="teacher" size={14} /> Faculty Editing Mode · {s.name}</div>
+            ) : (window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'admin' ? (
+              <div className="chip chip-violet mb-2"><Icon name="shield" size={14} /> Admin Viewing Mode · {s.name}</div>
+            ) : (
+              <div className="chip chip-brand mb-2"><Icon name="student" size={14} /> Student Portal</div>
+            )}
+            <h1 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)' }}>{(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' ? `Edit Record: ${s.name}` : 'My Profile'}</h1>
+            <p className="mt-1">Keep every field up to date — changes sync directly across portal & database.</p>
           </div>
           <div className="flex gap-2">
-            <button className={`btn ${editMode ? 'btn-ghost' : 'btn-ghost'}`} onClick={() => setEditMode(!editMode)}>
+            {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' && (
+              <button className="btn btn-ghost" onClick={() => onNavigate('/teacher')}>
+                ← Back to Teacher Dashboard
+              </button>
+            )}
+            <button className={`btn ${editMode ? 'btn-ghost' : 'btn-accent'}`} onClick={() => setEditMode(!editMode)}>
               <Icon name="edit" size={16} /> {editMode ? 'Cancel Edit' : 'Edit Profile'}
             </button>
             <button className="btn btn-primary" onClick={saveProfile}>
-              {saved ? <><Icon name="check" size={16} /> Saved</> : <><Icon name="upload" size={16} /> Save to Firestore</>}
+              {saved ? <><Icon name="check" size={16} /> Saved</> : <><Icon name="upload" size={16} /> Save Changes</>}
             </button>
           </div>
         </div>
@@ -1939,6 +1973,20 @@ function TeacherLogin({ onNavigate }) {
               </div>
             </div>
 
+            <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--accent)' }}>
+              <div className="text-xs font-semibold mb-2" style={{ color: 'var(--accent)' }}>Quick Demo Faculty Login:</div>
+              <button type="button" className="btn btn-ghost btn-sm w-full" style={{ fontSize: '0.82rem', background: 'color-mix(in oklab, var(--accent) 12%, transparent)', justifyContent: 'center' }} onClick={() => {
+                setUsername('ramesh.m');
+                setPassword('teacher123');
+                if (!window.VSB_DATA) window.VSB_DATA = {};
+                window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: 'ALL', section: 'ALL' };
+                window.VSB_DATA.currentUserRole = 'teacher';
+                onNavigate('/teacher');
+              }}>
+                ⚡ Dummy Faculty Login (Dr. Ramesh Kumar M. - ramesh.m)
+              </button>
+            </div>
+
             <form onSubmit={login}>
               <label className="field-label">Faculty Username</label>
               <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="ramesh.m" required />
@@ -2006,6 +2054,28 @@ function TeacherDashboard({ onNavigate }) {
   const [importErrorMessage, setImportErrorMessage] = useState('');
   const [importedCount, setImportedCount] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const handleSaveTeacherStudentEdit = async () => {
+    if (!editingStudent) return;
+    setSavingEdit(true);
+    try {
+      const updated = await window.VSB_API.updateStudentProfile(editingStudent.registerNumber, editingStudent);
+      setStudents(prev => prev.map(st => (st && st.registerNumber === editingStudent.registerNumber) ? updated : st));
+      if (window.VSB_DATA && window.VSB_DATA.students) {
+        const idx = window.VSB_DATA.students.findIndex(st => st && st.registerNumber === editingStudent.registerNumber);
+        if (idx !== -1) window.VSB_DATA.students[idx] = updated;
+      }
+      setEditingStudent(null);
+      setSavingEdit(false);
+      alert(`Successfully updated student record for ${updated.name} (${updated.registerNumber}).`);
+    } catch (err) {
+      console.error(err);
+      setSavingEdit(false);
+      alert('Failed to save student edits: ' + (err.message || err));
+    }
+  };
 
   const importFileInputRef = useRef(null);
 
@@ -2544,12 +2614,15 @@ function TeacherDashboard({ onNavigate }) {
                       </td>
                       <td>
                         <div className="flex gap-1">
-                          <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} onClick={() => {
+                          <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="View Full Profile" onClick={() => {
                             if (!window.VSB_DATA) window.VSB_DATA = {};
                             window.VSB_DATA.currentStudentRegNum = regNum;
+                            window.VSB_DATA.currentUserRole = 'teacher';
                             onNavigate('/student');
                           }}><Icon name="eye" size={14} /></button>
-                          <button className="btn btn-ghost btn-icon" style={{ padding: 6 }}><Icon name="edit" size={14} /></button>
+                          <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Student Record" onClick={() => {
+                            setEditingStudent({ ...s });
+                          }}><Icon name="edit" size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -2709,6 +2782,174 @@ function TeacherDashboard({ onNavigate }) {
         </div>
       )}
 
+      {editingStudent && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20
+        }} className="fade-in">
+          <GlassCard strong className="p-6" style={{
+            width: '100%',
+            maxWidth: 850,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            position: 'relative',
+            border: '1px solid color-mix(in oklab, var(--text) 10%, transparent)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+          }}>
+            <button className="btn btn-ghost btn-icon" style={{ position: 'absolute', top: 16, right: 16 }} onClick={() => setEditingStudent(null)}>
+              <Icon name="close" size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #10B981, #34D399)', color: 'white', display: 'grid', placeItems: 'center' }}>
+                <Icon name="edit" size={20} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.3rem', marginBottom: 2 }}>Edit Student Record</h2>
+                <div className="text-xs text-subtle">{editingStudent.registerNumber} · {editingStudent.name}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: 16 }} className="mt-4">
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Student Name</label>
+                  <input className="input" value={editingStudent.name || ''} onChange={e => setEditingStudent({ ...editingStudent, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Register Number</label>
+                  <input className="input mono" value={editingStudent.registerNumber || ''} disabled style={{ opacity: 0.7 }} />
+                </div>
+                <div>
+                  <label className="field-label">Roll Number</label>
+                  <input className="input mono" value={editingStudent.rollNumber || ''} onChange={e => setEditingStudent({ ...editingStudent, rollNumber: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Date of Birth</label>
+                  <input className="input" type="date" value={editingStudent.dob || ''} onChange={e => setEditingStudent({ ...editingStudent, dob: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Gender</label>
+                  <select className="input" value={editingStudent.gender || 'Male'} onChange={e => setEditingStudent({ ...editingStudent, gender: e.target.value })}>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Blood Group</label>
+                  <input className="input" value={editingStudent.bloodGroup || ''} onChange={e => setEditingStudent({ ...editingStudent, bloodGroup: e.target.value })} placeholder="O+" />
+                </div>
+              </div>
+
+              <div className="grid-4">
+                <div>
+                  <label className="field-label">Department</label>
+                  <select className="input" value={editingStudent.department || 'CSE'} onChange={e => {
+                    const deptCode = e.target.value;
+                    const deptObj = departmentsList.find(d => d.code === deptCode);
+                    setEditingStudent({ ...editingStudent, department: deptCode, departmentName: deptObj ? deptObj.name : deptCode });
+                  }}>
+                    {departmentsList.map(d => <option key={d.code} value={d.code}>{d.code} - {d.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Batch</label>
+                  <select className="input" value={editingStudent.batch || '2024-2028'} onChange={e => setEditingStudent({ ...editingStudent, batch: e.target.value })}>
+                    {batchesList.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Section</label>
+                  <select className="input" value={editingStudent.section || 'A'} onChange={e => setEditingStudent({ ...editingStudent, section: e.target.value })}>
+                    {sectionsList.map(s => <option key={s} value={s}>Section {s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Year of Study</label>
+                  <select className="input" value={editingStudent.year || 1} onChange={e => setEditingStudent({ ...editingStudent, year: parseInt(e.target.value) })}>
+                    <option value={1}>Year 1</option>
+                    <option value={2}>Year 2</option>
+                    <option value={3}>Year 3</option>
+                    <option value={4}>Year 4</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">CGPA</label>
+                  <input className="input font-semibold" value={editingStudent.cgpa || ''} onChange={e => setEditingStudent({ ...editingStudent, cgpa: e.target.value })} placeholder="8.50" />
+                </div>
+                <div>
+                  <label className="field-label">Arrears Count</label>
+                  <input className="input" type="number" value={editingStudent.arrears || 0} onChange={e => setEditingStudent({ ...editingStudent, arrears: parseInt(e.target.value) || 0 })} />
+                </div>
+                <div>
+                  <label className="field-label">Profile Completion %</label>
+                  <input className="input" type="number" value={editingStudent.profileCompletion || 50} onChange={e => setEditingStudent({ ...editingStudent, profileCompletion: parseInt(e.target.value) || 50 })} />
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Email</label>
+                  <input className="input" type="email" value={editingStudent.email || ''} onChange={e => setEditingStudent({ ...editingStudent, email: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Phone</label>
+                  <input className="input" value={editingStudent.phone || ''} onChange={e => setEditingStudent({ ...editingStudent, phone: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Emergency Contact</label>
+                  <input className="input" value={editingStudent.emergencyContact || ''} onChange={e => setEditingStudent({ ...editingStudent, emergencyContact: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div>
+                  <label className="field-label">Parent Name</label>
+                  <input className="input" value={editingStudent.parentName || ''} onChange={e => setEditingStudent({ ...editingStudent, parentName: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Parent Phone</label>
+                  <input className="input" value={editingStudent.parentPhone || ''} onChange={e => setEditingStudent({ ...editingStudent, parentPhone: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Placement Status</label>
+                  <select className="input" value={(editingStudent.placement && editingStudent.placement.status) || 'Not Applied'} onChange={e => setEditingStudent({
+                    ...editingStudent,
+                    placement: { ...(editingStudent.placement || {}), status: e.target.value }
+                  })}>
+                    <option value="Not Applied">Not Applied</option>
+                    <option value="Eligible">Eligible</option>
+                    <option value="Interviewing">Interviewing</option>
+                    <option value="Placed">Placed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                <button className="btn btn-ghost" onClick={() => setEditingStudent(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveTeacherStudentEdit} disabled={savingEdit}>
+                  {savingEdit ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Save Student Record</>}
+                </button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
       <style>{`
         @media (max-width: 900px) {
           .chart-row { grid-template-columns: 1fr !important; }
@@ -2804,8 +3045,21 @@ function AdminLogin({ onNavigate }) {
         </div>
 
         <GlassCard strong className="p-8">
-          <div className="chip chip-violet mb-6" style={{ width: '100%', justifyContent: 'center', padding: '8px 14px' }}>
+          <div className="chip chip-violet mb-4" style={{ width: '100%', justifyContent: 'center', padding: '8px 14px' }}>
             <Icon name="shield" size={14} /> Access URL — /admin
+          </div>
+
+          <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed #8B5CF6' }}>
+            <div className="text-xs font-semibold mb-2" style={{ color: '#8B5CF6' }}>Quick Demo Admin Login:</div>
+            <button type="button" className="btn btn-ghost btn-sm w-full" style={{ fontSize: '0.82rem', background: 'color-mix(in oklab, #8B5CF6 12%, transparent)', color: '#8B5CF6', justifyContent: 'center' }} onClick={() => {
+              setUsername('admin');
+              setPassword('admin');
+              if (!window.VSB_DATA) window.VSB_DATA = {};
+              window.VSB_DATA.currentUserRole = 'admin';
+              onNavigate('/admin/dashboard');
+            }}>
+              ⚡ Dummy Admin Login (admin / admin)
+            </button>
           </div>
 
           <form onSubmit={login}>

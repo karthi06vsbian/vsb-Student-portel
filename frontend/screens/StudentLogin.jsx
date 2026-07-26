@@ -117,9 +117,31 @@ function StudentLogin({ onNavigate }) {
                 </div>
 
                 <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--brand-primary)' }}>
-                  <div className="text-xs font-semibold" style={{ color: 'var(--brand-primary)' }}>Default Demo Student Logins:</div>
-                  <div className="text-xs text-subtle mt-1">Register #: <strong className="mono">2023CS042</strong> · DOB: <strong className="mono">2005-04-18</strong></div>
-                  <div className="text-xs text-subtle">Or use any imported Reg #: <strong className="mono">24104064</strong>, <strong className="mono">24104066</strong></div>
+                  <div className="text-xs font-semibold mb-2" style={{ color: 'var(--brand-primary)' }}>Quick Demo Student Logins:</div>
+                  <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: '0.78rem', background: 'color-mix(in oklab, var(--brand-primary) 12%, transparent)' }} onClick={() => {
+                      setRegNum('2023CS042');
+                      setDob('2005-04-18');
+                      setTimeout(() => {
+                        window.VSB_DATA.currentStudentRegNum = '2023CS042';
+                        window.VSB_DATA.currentUserRole = 'student';
+                        onNavigate('/student');
+                      }, 100);
+                    }}>
+                      ⚡ Demo Student (2023CS042)
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: '0.78rem', background: 'color-mix(in oklab, var(--accent) 12%, transparent)' }} onClick={() => {
+                      setRegNum('24104064');
+                      setDob('2005-01-01');
+                      setTimeout(() => {
+                        window.VSB_DATA.currentStudentRegNum = '24104064';
+                        window.VSB_DATA.currentUserRole = 'student';
+                        onNavigate('/student');
+                      }, 100);
+                    }}>
+                      ⚡ Student (24104064)
+                    </button>
+                  </div>
                 </div>
 
                 <label className="field-label">Register Number</label>
@@ -131,7 +153,7 @@ function StudentLogin({ onNavigate }) {
                 {error && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{error}</div>}
 
                 <button className="btn btn-primary w-full mt-6" onClick={login} disabled={loading}>
-                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student (2023CS042)</>}
+                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student</>}
                 </button>
               </>
             ) : (

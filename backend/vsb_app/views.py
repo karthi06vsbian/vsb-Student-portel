@@ -91,7 +91,7 @@ def serialize_teacher(t):
 def student_login(request):
     try:
         data = json.loads(request.body)
-        username = StringVal = data.get('username', '').strip()
+        username = data.get('username', '').strip()
         dob = data.get('dob', '').strip()
         
         # Search by Register Number or Roll Number
