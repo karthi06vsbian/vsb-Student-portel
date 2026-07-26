@@ -6,8 +6,12 @@
       "destination": "/frontend/index.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/(styles.css|data.js|api.js|bundle.jsx|components.jsx|app.jsx|tweaks_panel.jsx|xlsx.full.min.js|screens/.*)",
       "destination": "/frontend/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/index.html"
     }
   ]
 }

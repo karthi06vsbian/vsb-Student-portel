@@ -1529,7 +1529,7 @@ function StudentDashboard({ onNavigate }) {
                   </button>
                 )}
                 <button className="btn btn-ghost btn-sm w-full mt-2" onClick={() => {
-                  (window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") = null;
+                  if (window.VSB_DATA) window.VSB_DATA.currentUserRole = null;
                   onNavigate('/');
                 }}>
                   <Icon name="logout" size={14} /> Logout

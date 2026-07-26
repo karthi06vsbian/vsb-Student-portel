@@ -181,6 +181,8 @@ window.VSB_DATA = (() => {
     { id: 4, title: 'Certificate verified',       body: 'AWS Cloud Practitioner added',         time: '2d',  unread: false },
   ];
 
+  const batchEmailAuth = { '2022-2026': false, '2023-2027': false, '2024-2028': false, '2025-2029': false };
+
   // Persistent localStorage retrieval
   let savedStudents = null;
   let savedTeachers = null;
