@@ -398,15 +398,17 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
   }, [departments, defaultDepartment, newStudent.department]);
 
   const filteredStudents = useMemo(() => {
-    return studentsList.filter(s => {
+    return (studentsList || []).filter(s => {
+      if (!s) return false;
       const matchDept = filterDept === 'ALL' || s.department === filterDept;
       const matchBatch = filterBatch === 'ALL' || s.batch === filterBatch;
       const matchSec = filterSec === 'ALL' || s.section === filterSec;
-      const matchQ = !query ||
-        s.name.toLowerCase().includes(query.toLowerCase()) ||
-        s.registerNumber.toLowerCase().includes(query.toLowerCase()) ||
-        (s.rollNumber && s.rollNumber.toLowerCase().includes(query.toLowerCase())) ||
-        (s.email && s.email.toLowerCase().includes(query.toLowerCase()));
+      const nameStr = String(s.name || '').toLowerCase();
+      const regStr = String(s.registerNumber || '').toLowerCase();
+      const rollStr = String(s.rollNumber || '').toLowerCase();
+      const emailStr = String(s.email || '').toLowerCase();
+      const q = String(query || '').toLowerCase();
+      const matchQ = !q || nameStr.includes(q) || regStr.includes(q) || rollStr.includes(q) || emailStr.includes(q);
       return matchDept && matchBatch && matchSec && matchQ;
     });
   }, [studentsList, filterDept, filterBatch, filterSec, query]);
