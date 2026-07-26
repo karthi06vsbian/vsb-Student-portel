@@ -61,7 +61,7 @@ function TopBar({ onNavigate, currentRoute, theme, onToggleTheme }) {
   return (
     <div style={{ position: 'fixed', top: 20, left: 0, right: 0, zIndex: 40, pointerEvents: 'none' }}>
       <div className="container flex items-center justify-between" style={{ pointerEvents: 'auto' }}>
-        <a href="#/" onClick={(e) => { e.preventDefault(); onNavigate('/'); }} style={{ textDecoration: 'none', color: 'inherit' }}>
+        <a href="#/student-login" onClick={(e) => { e.preventDefault(); onNavigate('/student-login'); }} style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="flex items-center gap-3">
             <Monogram />
             <div>
@@ -71,19 +71,22 @@ function TopBar({ onNavigate, currentRoute, theme, onToggleTheme }) {
           </div>
         </a>
         <nav className="glass flex items-center gap-1 p-1" style={{ borderRadius: 999, padding: 6 }}>
-          {links.map(l => (
-            <a key={l.route} href={`#${l.route}`}
-               onClick={(e) => { e.preventDefault(); onNavigate(l.route); }}
-               style={{
-                 padding: '8px 16px', borderRadius: 999, fontSize: '0.88rem', fontWeight: 500,
-                 textDecoration: 'none',
-                 color: currentRoute === l.route ? 'white' : 'var(--text-muted)',
-                 background: currentRoute === l.route ? 'var(--brand-primary)' : 'transparent',
-                 transition: 'all .2s',
-               }}>
-              {l.label}
-            </a>
-          ))}
+          {links.map(l => {
+            const isActive = currentRoute === l.route || (l.route === '/student-login' && (currentRoute === '/' || currentRoute === ''));
+            return (
+              <a key={l.route} href={`#${l.route}`}
+                 onClick={(e) => { e.preventDefault(); onNavigate(l.route); }}
+                 style={{
+                   padding: '8px 16px', borderRadius: 999, fontSize: '0.88rem', fontWeight: 500,
+                   textDecoration: 'none',
+                   color: isActive ? 'white' : 'var(--text-muted)',
+                   background: isActive ? 'var(--brand-primary)' : 'transparent',
+                   transition: 'all .2s',
+                 }}>
+                {l.label}
+              </a>
+            );
+          })}
         </nav>
         <div className="flex items-center gap-2">
           <button className="btn btn-ghost btn-icon" onClick={onToggleTheme} aria-label="Toggle theme">
