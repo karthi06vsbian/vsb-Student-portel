@@ -646,6 +646,7 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
             <p className="text-sm mt-1">Manage and provision student logins by Batch & Department.</p>
           </div>
           <div className="flex gap-2">
+            <button className="btn btn-accent" onClick={() => window.VSB_EXPORT.exportStudentsToExcel(studentsList, 'VSB_Student_Logins_Database.xlsx')}><Icon name="download" size={16} /> Export Excel</button>
             <button className="btn btn-primary" onClick={() => setTab('import')}><Icon name="upload" size={16} /> Bulk Upload CSV / Excel</button>
             <button className="btn btn-ghost" onClick={() => setShowCreateForm(!showCreateForm)}>
               <Icon name={showCreateForm ? 'close' : 'plus'} size={16} /> {showCreateForm ? 'Cancel' : 'Create Single Login'}
@@ -1293,7 +1294,7 @@ function AdminActivity() {
           <h2 style={{ fontSize: '1.3rem' }}>Activity & Audit Log</h2>
           <p className="text-sm mt-1">Every action across the system is recorded.</p>
         </div>
-        <button className="btn btn-ghost" onClick={() => alert('Activity log exported!')}><Icon name="download" size={14} /> Export Logs</button>
+        <button className="btn btn-ghost" onClick={() => window.VSB_EXPORT.exportActivityLogsToCSV((window.VSB_DATA && window.VSB_DATA.activityLogs) || [], 'VSB_Activity_Logs.csv')}><Icon name="download" size={14} /> Export Logs</button>
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         {((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).map(l => {

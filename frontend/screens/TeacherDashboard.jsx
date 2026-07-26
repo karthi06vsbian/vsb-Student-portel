@@ -492,7 +492,7 @@ function TeacherDashboard({ onNavigate }) {
                 </>
               )}
               <button type="button" className="btn btn-ghost btn-sm" onClick={openImportModal}><Icon name="upload" size={14} /> Bulk Upload CSV</button>
-              <button className="btn btn-accent btn-sm" onClick={() => alert('Exported class database to Excel.')}><Icon name="download" size={14} /> Export Excel</button>
+              <button className="btn btn-accent btn-sm" onClick={() => window.VSB_EXPORT.exportStudentsToExcel(filtered, 'VSB_Teacher_Class_Database.xlsx')}><Icon name="download" size={14} /> Export Excel</button>
             </div>
           </div>
 

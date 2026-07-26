@@ -274,3 +274,93 @@ window.VSB_API = {
 setTimeout(() => {
   window.VSB_API.syncInitialData();
 }, 2000);
+
+// Excel & CSV Export Helper
+window.VSB_EXPORT = {
+  exportStudentsToExcel(studentsList, fileName = 'VSB_Students_Database.xlsx') {
+    try {
+      const list = Array.isArray(studentsList) ? studentsList : [];
+      if (!list.length) {
+        alert('No student records available to export.');
+        return;
+      }
+      const data = list.map(s => ({
+        'Register Number': s.registerNumber || '',
+        'Roll Number': s.rollNumber || s.registerNumber || '',
+        'Student Name': s.name || '',
+        'Department': s.departmentName || s.department || '',
+        'Batch': s.batch || '',
+        'Section': s.section || '',
+        'Year of Study': s.year || 1,
+        'Date of Birth': s.dob || '',
+        'CGPA': s.cgpa || '',
+        'Arrears': s.arrears || 0,
+        'Email': s.email || '',
+        'Phone': s.phone || '',
+        'Hometown': s.hometown || '',
+        'Blood Group': s.bloodGroup || '',
+        'Placement Status': s.placement ? s.placement.status : 'Not Applied',
+        'Placement Company': s.placement ? s.placement.company || '' : '',
+        'Package (LPA)': s.placement ? s.placement.package || '' : '',
+      }));
+
+      if (window.XLSX && window.XLSX.utils) {
+        const ws = window.XLSX.utils.json_to_sheet(data);
+        const wb = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(wb, ws, 'Students');
+        window.XLSX.writeFile(wb, fileName);
+      } else {
+        this.downloadCSV(data, fileName.replace('.xlsx', '.csv'));
+      }
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Export failed: ' + err.message);
+    }
+  },
+
+  exportActivityLogsToCSV(logsList, fileName = 'VSB_Activity_Logs.csv') {
+    try {
+      const list = Array.isArray(logsList) ? logsList : [];
+      if (!list.length) {
+        alert('No activity logs available to export.');
+        return;
+      }
+      const data = list.map(l => ({
+        'Log ID': l.id || '',
+        'Actor': l.actor || '',
+        'Action': l.action || '',
+        'Target': l.target || '',
+        'Time': l.time || ''
+      }));
+
+      if (window.XLSX && window.XLSX.utils) {
+        const ws = window.XLSX.utils.json_to_sheet(data);
+        const wb = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(wb, ws, 'Activity Logs');
+        window.XLSX.writeFile(wb, fileName.replace('.csv', '.xlsx'));
+      } else {
+        this.downloadCSV(data, fileName);
+      }
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    }
+  },
+
+  downloadCSV(dataArray, fileName) {
+    if (!dataArray || !dataArray.length) return;
+    const headers = Object.keys(dataArray[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of dataArray) {
+      const values = headers.map(h => {
+        const val = row[h] == null ? '' : String(row[h]);
+        return `"${val.replace(/"/g, '""')}"`;
+      });
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+  }
+};
