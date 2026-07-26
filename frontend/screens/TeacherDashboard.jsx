@@ -67,7 +67,7 @@ function TeacherDashboard({ onNavigate }) {
     const female = filtered.filter(s => s.gender === 'Female').length;
     const completed = filtered.filter(s => s.profileCompletion >= 90).length;
     const arrears = filtered.filter(s => s.arrears > 0).length;
-    const placed = filtered.filter(s => s.placement.status === 'Placed').length;
+    const placed = filtered.filter(s => s.placement && s.placement.status === 'Placed').length;
     const avgCgpa = total > 0 ? (filtered.reduce((a, s) => a + parseFloat(s.cgpa || 0), 0) / total).toFixed(2) : '—';
     return { total, male, female, completed, incomplete: total - completed, arrears, placed, avgCgpa };
   }, [filtered]);
@@ -137,6 +137,9 @@ function TeacherDashboard({ onNavigate }) {
   };
 
   const parseWorkbookRows = (workbook) => {
+    const XLSX = window.XLSX;
+    if (!XLSX) throw new Error('Spreadsheet parser is loading. Please try again.');
+
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true, defval: '' });
@@ -273,9 +276,10 @@ function TeacherDashboard({ onNavigate }) {
   };
 
   const handleFileSelected = (event) => {
+    const XLSX = window.XLSX;
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!window.XLSX) {
+    if (!XLSX) {
       setImportErrorMessage('Excel/CSV parser is still loading. Please try again in a moment.');
       return;
     }
@@ -328,13 +332,13 @@ function TeacherDashboard({ onNavigate }) {
     }
   };
 
-  const resetImport = () => {
+  const openImportModal = () => {
     setImportStep('upload');
     setImportFileName('');
     setImportParsedStudents([]);
     setImportedCount(0);
     setImportErrorMessage('');
-    if (importFileInputRef.current) importFileInputRef.current.value = '';
+    setShowImportModal(true);
   };
 
   return (
@@ -445,7 +449,7 @@ function TeacherDashboard({ onNavigate }) {
                   <button className="btn btn-ghost btn-sm"><Icon name="check" size={14} /> Approve</button>
                 </>
               )}
-              <button className="btn btn-ghost btn-sm" onClick={() => { setShowImportModal(true); resetImport(); }}><Icon name="upload" size={14} /> Bulk Upload CSV</button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={openImportModal}><Icon name="upload" size={14} /> Bulk Upload CSV</button>
               <button className="btn btn-accent btn-sm" onClick={() => alert('Exported class database to Excel.')}><Icon name="download" size={14} /> Export Excel</button>
             </div>
           </div>
@@ -644,7 +648,7 @@ function TeacherDashboard({ onNavigate }) {
               <>
                 <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 10 }}>
                   <div className="chip chip-accent"><Icon name="check" size={12} stroke={3} /> Parsed <strong>{importFileName}</strong> · {importParsedStudents.length} rows for Batch <strong>{targetBatch}</strong></div>
-                  <button className="btn btn-ghost btn-sm" onClick={resetImport}><Icon name="close" size={14} /> Choose Another</button>
+                  <button className="btn btn-ghost btn-sm" onClick={openImportModal}><Icon name="close" size={14} /> Choose Another</button>
                 </div>
                 <div style={{ overflowX: 'auto', maxHeight: '40vh', marginBottom: 20, border: '1px solid var(--border-strong)', borderRadius: 8 }}>
                   <table className="data-table" style={{ margin: 0 }}>
