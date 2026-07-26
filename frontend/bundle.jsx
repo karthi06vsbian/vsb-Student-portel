@@ -1255,6 +1255,12 @@ function StudentLogin({ onNavigate }) {
                   </div>
                 </div>
 
+                <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--brand-primary)' }}>
+                  <div className="text-xs font-semibold" style={{ color: 'var(--brand-primary)' }}>Default Demo Student Logins:</div>
+                  <div className="text-xs text-subtle mt-1">Register #: <strong className="mono">2023CS042</strong> · DOB: <strong className="mono">2005-04-18</strong></div>
+                  <div className="text-xs text-subtle">Or use any imported Reg #: <strong className="mono">24104064</strong>, <strong className="mono">24104066</strong></div>
+                </div>
+
                 <label className="field-label">Register Number</label>
                 <input className="input" value={regNum} onChange={e => setRegNum(e.target.value)} placeholder="2023CS042" />
 
@@ -1264,7 +1270,7 @@ function StudentLogin({ onNavigate }) {
                 {error && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{error}</div>}
 
                 <button className="btn btn-primary w-full mt-6" onClick={login} disabled={loading}>
-                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Continue to Login</>}
+                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student (2023CS042)</>}
                 </button>
               </>
             ) : (
@@ -1478,18 +1484,18 @@ function StudentDashboard({ onNavigate }) {
               <div style={{ padding: 12 }}>
                 <div className="text-xs text-subtle mb-2">LAST UPDATED</div>
                 <div className="text-sm font-semibold">{s.lastUpdated}</div>
-                {window.VSB_DATA.currentUserRole === 'teacher' && (
+                {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'teacher' && (
                   <button className="btn btn-accent btn-sm w-full mt-3" onClick={() => onNavigate('/teacher')}>
                     ← Back to Faculty
                   </button>
                 )}
-                {window.VSB_DATA.currentUserRole === 'admin' && (
+                {(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'admin' && (
                   <button className="btn btn-accent btn-sm w-full mt-3" onClick={() => onNavigate('/admin/dashboard')}>
                     ← Back to Admin Panel
                   </button>
                 )}
                 <button className="btn btn-ghost btn-sm w-full mt-2" onClick={() => {
-                  window.VSB_DATA.currentUserRole = null;
+                  (window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") = null;
                   onNavigate('/');
                 }}>
                   <Icon name="logout" size={14} /> Logout
@@ -1557,19 +1563,19 @@ function StudentDashboard({ onNavigate }) {
                 <Field label="Current CGPA" value={s.cgpa} edit={editMode} onChange={v => updateField('cgpa', v)} />
               </div>
               <div className="grid-4 mt-3">
-                <Field label="Department" value={s.departmentName} locked={window.VSB_DATA.currentUserRole === 'student'} options={((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).map(d => d.name)} edit={editMode} onChange={v => {
-                  const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.name === v);
+                <Field label="Department" value={s.departmentName} locked={(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'student'} options={((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).map(d => d.name)} edit={editMode} onChange={v => {
+                  const deptObj = ((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).find(d => d.name === v);
                   if (deptObj) {
                     updateField('department', deptObj.code);
                     updateField('departmentName', deptObj.name);
                   }
                 }} />
-                <Field label="Batch" value={s.batch} locked={window.VSB_DATA.currentUserRole === 'student'} options={window.VSB_DATA.BATCHES} edit={editMode} onChange={v => updateField('batch', v)} />
-                <Field label="Section" value={s.section} locked={window.VSB_DATA.currentUserRole === 'student'} options={window.VSB_DATA.SECTIONS} edit={editMode} onChange={v => updateField('section', v)} />
-                <Field label="Year of Study" value={s.year} locked={window.VSB_DATA.currentUserRole === 'student'} type="number" edit={editMode} onChange={v => updateField('year', Number(v))} />
+                <Field label="Batch" value={s.batch} locked={(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'student'} options={((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"])} edit={editMode} onChange={v => updateField('batch', v)} />
+                <Field label="Section" value={s.section} locked={(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'student'} options={((window.VSB_DATA && window.VSB_DATA.SECTIONS) || ["A", "B", "C", "D"])} edit={editMode} onChange={v => updateField('section', v)} />
+                <Field label="Year of Study" value={s.year} locked={(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'student'} type="number" edit={editMode} onChange={v => updateField('year', Number(v))} />
               </div>
               <div className="grid-3 mt-3">
-                <Field label="Arrears" value={s.arrears} locked={window.VSB_DATA.currentUserRole === 'student'} type="number" edit={editMode} onChange={v => updateField('arrears', Number(v))} tone={s.arrears > 0 ? 'rose' : 'accent'} />
+                <Field label="Arrears" value={s.arrears} locked={(window.VSB_DATA ? window.VSB_DATA.currentUserRole : "student") === 'student'} type="number" edit={editMode} onChange={v => updateField('arrears', Number(v))} tone={s.arrears > 0 ? 'rose' : 'accent'} />
                 <Field label="Backlogs Cleared" value="—" />
                 <Field label="Attendance" value="92%" />
               </div>
@@ -1580,7 +1586,7 @@ function StudentDashboard({ onNavigate }) {
               <div className="mb-4">
                 <div className="field-label">Technical Skills</div>
                 <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap' }}>
-                  {s.skills.map(sk => <span key={sk} className="chip chip-brand">{sk}</span>)}
+                  {(s.skills || []).map(sk => <span key={sk} className="chip chip-brand">{sk}</span>)}
                   {editMode && <button className="chip" style={{ cursor: 'pointer' }}><Icon name="plus" size={12} /> Add skill</button>}
                 </div>
               </div>
@@ -1596,8 +1602,8 @@ function StudentDashboard({ onNavigate }) {
             <Section id="teachers" title="Teacher Information" subtitle="Your department HOD and faculty advisors">
               <div style={{ display: 'grid', gap: 16 }}>
                 {(() => {
-                  const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.code === s.department);
-                  const deptTeachers = window.VSB_DATA.teachers.filter(t => t.department === s.department);
+                  const deptObj = ((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).find(d => d.code === s.department);
+                  const deptTeachers = ((window.VSB_DATA && window.VSB_DATA.teachers) || []).filter(t => t.department === s.department);
                   const hod = deptTeachers.find(t => t.role === 'HOD');
                   const facultyList = deptTeachers.filter(t => t.role !== 'HOD');
                   return (

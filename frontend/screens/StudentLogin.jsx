@@ -116,6 +116,12 @@ function StudentLogin({ onNavigate }) {
                   </div>
                 </div>
 
+                <div className="glass-inner p-3 mb-5" style={{ borderRadius: 12, border: '1px dashed var(--brand-primary)' }}>
+                  <div className="text-xs font-semibold" style={{ color: 'var(--brand-primary)' }}>Default Demo Student Logins:</div>
+                  <div className="text-xs text-subtle mt-1">Register #: <strong className="mono">2023CS042</strong> · DOB: <strong className="mono">2005-04-18</strong></div>
+                  <div className="text-xs text-subtle">Or use any imported Reg #: <strong className="mono">24104064</strong>, <strong className="mono">24104066</strong></div>
+                </div>
+
                 <label className="field-label">Register Number</label>
                 <input className="input" value={regNum} onChange={e => setRegNum(e.target.value)} placeholder="2023CS042" />
 
@@ -125,7 +131,7 @@ function StudentLogin({ onNavigate }) {
                 {error && <div className="chip chip-rose mt-4" style={{ width: '100%', justifyContent: 'center' }}>{error}</div>}
 
                 <button className="btn btn-primary w-full mt-6" onClick={login} disabled={loading}>
-                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Continue to Login</>}
+                  {loading ? <span className="spinner" style={{ borderTopColor: 'white' }} /> : <><Icon name="check" size={16} /> Sign In as Student (2023CS042)</>}
                 </button>
               </>
             ) : (
