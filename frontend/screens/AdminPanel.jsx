@@ -231,92 +231,171 @@ function AdminDepartments({ departments, setDepartments }) {
     alert('Department updated successfully!');
   };
   
-  return (
-    <GlassCard className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 style={{ fontSize: '1.3rem' }}>Departments</h2>
-          <p className="text-sm mt-1">Manage academic streams and assign HODs.</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowAddForm(true)}><Icon name="plus" size={16} /> Add Department</button>
-      </div>
-      
-      {showAddForm && (
-        <div className="glass-inner p-4 mb-4" style={{ display: 'grid', gap: 12 }}>
-          <div className="grid-2">
-            <div><label className="field-label">Code</label><input className="input" value={newDept.code} onChange={e => setNewDept({...newDept, code: e.target.value.toUpperCase()})} placeholder="e.g., CSE" /></div>
-            <div><label className="field-label">Name</label><input className="input" value={newDept.name} onChange={e => setNewDept({...newDept, name: e.target.value})} placeholder="Full name" /></div>
-            <div><label className="field-label">HOD</label><input className="input" value={newDept.hod} onChange={e => setNewDept({...newDept, hod: e.target.value})} placeholder="Dr. Name" /></div>
-            <div><label className="field-label">Color</label><input type="color" className="input" value={newDept.color} onChange={e => setNewDept({...newDept, color: e.target.value})} /></div>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button className="btn btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleAddDept}>Add Department</button>
-          </div>
-        </div>
-      )}
-      <table className="data-table">
-        <thead>
-          <tr><th>Code</th><th>Department Name</th><th>HOD</th><th>Students</th><th>Faculty</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {departments.map(d => {
-            const studentCount = ((window.VSB_DATA && window.VSB_DATA.students) || []).filter(s => s && s.department === d.code).length;
-            const facultyCount = ((window.VSB_DATA && window.VSB_DATA.teachers) || []).filter(t => t && t.department === d.code).length;
-            return (
-              <tr key={d.code}>
-                <td><div style={{ width: 34, height: 34, borderRadius: 8, background: `linear-gradient(135deg, ${d.color || '#2563EB'}, color-mix(in oklab, ${d.color || '#2563EB'} 60%, white))`, color: 'white', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem' }}>{d.code}</div></td>
-                <td>{d.name}</td>
-                <td>{d.hod}</td>
-                <td className="mono">{studentCount}</td>
-                <td className="mono">{facultyCount}</td>
-                <td>
-                  <div className="flex gap-1">
-                    <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Department" onClick={() => setEditingDept({ ...d })}><Icon name="edit" size={14} /></button>
-                    <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} title="Delete Department" onClick={() => { if(confirm(`Delete ${d.name}?`)) setDepartments(departments.filter(dp => dp.code !== d.code)); }}><Icon name="trash" size={14} /></button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+  const [sectionsList, setSectionsList] = useState(() => (window.VSB_DATA && window.VSB_DATA.SECTIONS) || ['A', 'B', 'C', 'D']);
+  const [newSecName, setNewSecName] = useState('');
+  const [showAddSec, setShowAddSec] = useState(false);
 
-      {editingDept && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 1000,
-          background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
-          backdropFilter: 'blur(20px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
-        }}>
-          <GlassCard strong className="p-6" style={{ width: '100%', maxWidth: 500 }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Edit Department ({editingDept.code})</h3>
-            <div style={{ display: 'grid', gap: 12 }}>
-              <div>
-                <label className="field-label">Department Code</label>
-                <input className="input mono" value={editingDept.code} disabled style={{ opacity: 0.7 }} />
-              </div>
-              <div>
-                <label className="field-label">Department Name</label>
-                <input className="input" value={editingDept.name} onChange={e => setEditingDept({ ...editingDept, name: e.target.value })} />
-              </div>
-              <div>
-                <label className="field-label">HOD Name</label>
-                <input className="input" value={editingDept.hod} onChange={e => setEditingDept({ ...editingDept, hod: e.target.value })} />
-              </div>
-              <div>
-                <label className="field-label">Color</label>
-                <input type="color" className="input" value={editingDept.color || '#2563EB'} onChange={e => setEditingDept({ ...editingDept, color: e.target.value })} />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button className="btn btn-ghost" onClick={() => setEditingDept(null)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleSaveEditDept}>Save Changes</button>
-              </div>
-            </div>
-          </GlassCard>
+  const handleAddSection = () => {
+    const sec = newSecName.trim().toUpperCase().replace(/^SECTION\s*/i, '');
+    if (!sec) {
+      alert('Please enter a section designation (e.g. E, F, G)');
+      return;
+    }
+    if (sectionsList.includes(sec)) {
+      alert(`Section ${sec} already exists!`);
+      return;
+    }
+    const nextSections = [...sectionsList, sec];
+    setSectionsList(nextSections);
+    if (window.VSB_DATA) {
+      window.VSB_DATA.SECTIONS = nextSections;
+      if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
+      window.VSB_DATA.activityLogs = [{
+        id: ((window.VSB_DATA.activityLogs) || []).length + 1,
+        actor: 'Super Admin',
+        action: 'Created',
+        target: `Section ${sec} across all departments`,
+        time: 'Just now',
+        color: 'accent'
+      }, ...((window.VSB_DATA.activityLogs) || [])];
+    }
+    setNewSecName('');
+    setShowAddSec(false);
+    alert(`Section ${sec} added successfully across all departments!`);
+  };
+
+  const handleDeleteSection = (sec) => {
+    if (confirm(`Remove Section ${sec} from active portal settings?`)) {
+      const nextSections = sectionsList.filter(s => s !== sec);
+      setSectionsList(nextSections);
+      if (window.VSB_DATA) {
+        window.VSB_DATA.SECTIONS = nextSections;
+        if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
+      }
+    }
+  };
+
+  return (
+    <>
+      <GlassCard className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 style={{ fontSize: '1.3rem' }}>Departments</h2>
+            <p className="text-sm mt-1">Manage academic streams and assign HODs.</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => setShowAddForm(true)}><Icon name="plus" size={16} /> Add Department</button>
         </div>
-      )}
-    </GlassCard>
+        
+        {showAddForm && (
+          <div className="glass-inner p-4 mb-4" style={{ display: 'grid', gap: 12 }}>
+            <div className="grid-2">
+              <div><label className="field-label">Code</label><input className="input" value={newDept.code} onChange={e => setNewDept({...newDept, code: e.target.value.toUpperCase()})} placeholder="e.g., CSE" /></div>
+              <div><label className="field-label">Name</label><input className="input" value={newDept.name} onChange={e => setNewDept({...newDept, name: e.target.value})} placeholder="Full name" /></div>
+              <div><label className="field-label">HOD</label><input className="input" value={newDept.hod} onChange={e => setNewDept({...newDept, hod: e.target.value})} placeholder="Dr. Name" /></div>
+              <div><label className="field-label">Color</label><input type="color" className="input" value={newDept.color} onChange={e => setNewDept({...newDept, color: e.target.value})} /></div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button className="btn btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAddDept}>Add Department</button>
+            </div>
+          </div>
+        )}
+        <table className="data-table">
+          <thead>
+            <tr><th>Code</th><th>Department Name</th><th>HOD</th><th>Students</th><th>Faculty</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {departments.map(d => {
+              const studentCount = ((window.VSB_DATA && window.VSB_DATA.students) || []).filter(s => s && s.department === d.code).length;
+              const facultyCount = ((window.VSB_DATA && window.VSB_DATA.teachers) || []).filter(t => t && t.department === d.code).length;
+              return (
+                <tr key={d.code}>
+                  <td><div style={{ width: 34, height: 34, borderRadius: 8, background: `linear-gradient(135deg, ${d.color || '#2563EB'}, color-mix(in oklab, ${d.color || '#2563EB'} 60%, white))`, color: 'white', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem' }}>{d.code}</div></td>
+                  <td>{d.name}</td>
+                  <td>{d.hod}</td>
+                  <td className="mono">{studentCount}</td>
+                  <td className="mono">{facultyCount}</td>
+                  <td>
+                    <div className="flex gap-1">
+                      <button className="btn btn-ghost btn-icon" style={{ padding: 6 }} title="Edit Department" onClick={() => setEditingDept({ ...d })}><Icon name="edit" size={14} /></button>
+                      <button className="btn btn-ghost btn-icon" style={{ padding: 6, color: '#EF4444' }} title="Delete Department" onClick={() => { if(confirm(`Delete ${d.name}?`)) setDepartments(departments.filter(dp => dp.code !== d.code)); }}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {editingDept && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'color-mix(in oklab, var(--bg) 60%, transparent)',
+            backdropFilter: 'blur(20px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+          }}>
+            <GlassCard strong className="p-6" style={{ width: '100%', maxWidth: 500 }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Edit Department ({editingDept.code})</h3>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div>
+                  <label className="field-label">Department Code</label>
+                  <input className="input mono" value={editingDept.code} disabled style={{ opacity: 0.7 }} />
+                </div>
+                <div>
+                  <label className="field-label">Department Name</label>
+                  <input className="input" value={editingDept.name} onChange={e => setEditingDept({ ...editingDept, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">HOD Name</label>
+                  <input className="input" value={editingDept.hod} onChange={e => setEditingDept({ ...editingDept, hod: e.target.value })} />
+                </div>
+                <div>
+                  <label className="field-label">Color</label>
+                  <input type="color" className="input" value={editingDept.color || '#2563EB'} onChange={e => setEditingDept({ ...editingDept, color: e.target.value })} />
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <button className="btn btn-ghost" onClick={() => setEditingDept(null)}>Cancel</button>
+                  <button className="btn btn-primary" onClick={handleSaveEditDept}>Save Changes</button>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Class Sections Across All Departments */}
+      <GlassCard className="p-5 mt-6">
+        <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem' }}>Class Sections (All Departments)</h2>
+            <p className="text-sm mt-1">Manage active section designations (A, B, C, D, E, etc.) assigned across all academic departments.</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => setShowAddSec(true)}><Icon name="plus" size={16} /> Add New Section</button>
+        </div>
+
+        {showAddSec && (
+          <div className="glass-inner p-4 mb-4 flex items-center gap-3" style={{ maxWidth: 480 }}>
+            <input className="input" placeholder="Section name (e.g. E, F)" value={newSecName} onChange={e => setNewSecName(e.target.value)} />
+            <button className="btn btn-ghost" onClick={() => setShowAddSec(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleAddSection}>Save Section</button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
+          {sectionsList.map(sec => (
+            <div key={sec} className="glass-inner flex items-center gap-3" style={{ padding: '8px 16px', borderRadius: 999 }}>
+              <span className="mono font-semibold" style={{ fontSize: '0.95rem' }}>Section {sec}</span>
+              <span className="chip chip-accent" style={{ fontSize: '0.72rem' }}>Active</span>
+              {sectionsList.length > 1 && (
+                <button className="btn btn-ghost btn-icon" style={{ padding: 2, color: '#EF4444' }} title="Remove section" onClick={() => handleDeleteSection(sec)}>
+                  <Icon name="close" size={12} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    </>
   );
 }
 
