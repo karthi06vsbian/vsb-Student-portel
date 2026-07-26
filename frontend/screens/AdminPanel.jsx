@@ -505,6 +505,7 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
   const handleDeleteStudent = (regNum, name) => {
     if (confirm(`Are you sure you want to delete login for ${name} (${regNum})?`)) {
       window.VSB_DATA.students = window.VSB_DATA.students.filter(s => s.registerNumber !== regNum);
+      if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
       if (onDataChanged) onDataChanged();
     }
   };
@@ -1091,6 +1092,7 @@ function AdminSettings() {
     const updated = { ...emailAuth, [batch]: !emailAuth[batch] };
     setEmailAuth(updated);
     window.VSB_DATA.batchEmailAuth = updated;
+    if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
     window.VSB_DATA.activityLogs = [{
       id: window.VSB_DATA.activityLogs.length + 1,
       actor: 'Super Admin',

@@ -181,12 +181,64 @@ window.VSB_DATA = (() => {
     { id: 4, title: 'Certificate verified',       body: 'AWS Cloud Practitioner added',         time: '2d',  unread: false },
   ];
 
-  const batchEmailAuth = {
-    '2022-2026': false,
-    '2023-2027': false,
-    '2024-2028': true,
-    '2025-2029': true,
+  // Persistent localStorage retrieval
+  let savedStudents = null;
+  let savedTeachers = null;
+  let savedLogs = null;
+  let savedBatchEmail = null;
+
+  try {
+    const rawSt = localStorage.getItem('vsb_portal_students');
+    if (rawSt) savedStudents = JSON.parse(rawSt);
+
+    const rawT = localStorage.getItem('vsb_portal_teachers');
+    if (rawT) savedTeachers = JSON.parse(rawT);
+
+    const rawL = localStorage.getItem('vsb_portal_activity_logs');
+    if (rawL) savedLogs = JSON.parse(rawL);
+
+    const rawB = localStorage.getItem('vsb_portal_batch_email_auth');
+    if (rawB) savedBatchEmail = JSON.parse(rawB);
+  } catch (e) {
+    console.warn('localStorage read error:', e);
+  }
+
+  const finalStudents = (savedStudents && Array.isArray(savedStudents) && savedStudents.length > 0)
+    ? savedStudents
+    : students;
+
+  const finalTeachers = (savedTeachers && Array.isArray(savedTeachers) && savedTeachers.length > 0)
+    ? savedTeachers
+    : teachers;
+
+  const finalLogs = (savedLogs && Array.isArray(savedLogs))
+    ? savedLogs
+    : activityLogs;
+
+  const finalBatchEmailAuth = (savedBatchEmail && typeof savedBatchEmail === 'object')
+    ? savedBatchEmail
+    : batchEmailAuth;
+
+  const VSB_OBJ = {
+    DEPARTMENTS,
+    BATCHES,
+    SECTIONS,
+    students: finalStudents,
+    teachers: finalTeachers,
+    activityLogs: finalLogs,
+    notifications,
+    batchEmailAuth: finalBatchEmailAuth,
+    saveToStorage() {
+      try {
+        localStorage.setItem('vsb_portal_students', JSON.stringify(this.students || []));
+        localStorage.setItem('vsb_portal_teachers', JSON.stringify(this.teachers || []));
+        localStorage.setItem('vsb_portal_activity_logs', JSON.stringify(this.activityLogs || []));
+        localStorage.setItem('vsb_portal_batch_email_auth', JSON.stringify(this.batchEmailAuth || {}));
+      } catch (e) {
+        console.warn('localStorage save error:', e);
+      }
+    }
   };
 
-  return { DEPARTMENTS, BATCHES, SECTIONS, students, teachers, activityLogs, notifications, batchEmailAuth };
+  return VSB_OBJ;
 })();
