@@ -1,8 +1,25 @@
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Department, Teacher, Student
+
+def root_api_view(request):
+    """
+    Root URL view for Render backend service.
+    Redirects browser requests to the frontend web app (Vercel),
+    and returns a clean API status for API clients.
+    """
+    accept = request.META.get('HTTP_ACCEPT', '')
+    if 'text/html' in accept and 'application/json' not in accept:
+        return HttpResponseRedirect('https://vsb-student-portel.vercel.app/')
+    return JsonResponse({
+        "status": "online",
+        "service": "VSB Student Information Portal Backend API",
+        "frontend": "https://vsb-student-portel.vercel.app/",
+        "api_endpoints": "/api/",
+        "admin_portal": "/admin/"
+    })
 
 def serialize_student(s):
     return {
