@@ -566,6 +566,14 @@ function AdminBulkImport({ departments }) {
     }
     const text = String(value).trim();
     if (!text) return '';
+
+    // Direct regex check for YYYY-MM-DD to avoid timezone shifting
+    const matchYMD = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (matchYMD) {
+      const [, year, month, day] = matchYMD;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
     const parsed = new Date(text);
     if (!isNaN(parsed)) {
       const year = parsed.getFullYear();
@@ -866,10 +874,10 @@ function AdminBulkImport({ departments }) {
               margin: '0 auto 16px',
               boxShadow: '0 20px 40px -12px #2563EB80',
             }}><Icon name="upload" size={28} /></div>
-            <h3 className="mb-2">Drop your Excel here or click to browse</h3>
-            <p className="text-sm mb-4">Accepts .xlsx or .xls with columns like Roll Number, Student Name, Section, DOB, Gender and Programme Code.</p>
-            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleFileSelected} />
-            <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()}><Icon name="upload" size={16} /> Select Excel File</button>
+            <h3 className="mb-2">Drop your Excel or CSV here or click to browse</h3>
+            <p className="text-sm mb-4">Accepts .xlsx, .xls or .csv with columns like Roll Number, Student Name, Section, DOB, Gender and Programme Code.</p>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleFileSelected} />
+            <button className="btn btn-primary" onClick={() => fileInputRef.current?.click()}><Icon name="upload" size={16} /> Select Excel / CSV File</button>
             {errorMessage && <div className="chip chip-rose mt-4"><Icon name="close" size={12} /> {errorMessage}</div>}
           </div>
         )}
