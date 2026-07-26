@@ -3510,25 +3510,6 @@ function AdminDepartments({ departments, setDepartments }) {
     </>
   );
 }
-              <div>
-                <label className="field-label">HOD Name</label>
-                <input className="input" value={editingDept.hod} onChange={e => setEditingDept({ ...editingDept, hod: e.target.value })} />
-              </div>
-              <div>
-                <label className="field-label">Color</label>
-                <input type="color" className="input" value={editingDept.color || '#2563EB'} onChange={e => setEditingDept({ ...editingDept, color: e.target.value })} />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button className="btn btn-ghost" onClick={() => setEditingDept(null)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleSaveEditDept}>Save Changes</button>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      )}
-    </GlassCard>
-  );
-}
 
 function AdminTeachers({ teachers, setTeachers, departments }) {
   const [showAddForm, setShowAddForm] = useState(false);
