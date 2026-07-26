@@ -209,7 +209,7 @@ function StudentDashboard({ onNavigate }) {
                 <Field label="Current CGPA" value={s.cgpa} edit={editMode} onChange={v => updateField('cgpa', v)} />
               </div>
               <div className="grid-4 mt-3">
-                <Field label="Department" value={s.departmentName} locked={window.VSB_DATA.currentUserRole === 'student'} options={window.VSB_DATA.DEPARTMENTS.map(d => d.name)} edit={editMode} onChange={v => {
+                <Field label="Department" value={s.departmentName} locked={window.VSB_DATA.currentUserRole === 'student'} options={((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).map(d => d.name)} edit={editMode} onChange={v => {
                   const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.name === v);
                   if (deptObj) {
                     updateField('department', deptObj.code);

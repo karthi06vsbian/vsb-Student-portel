@@ -1555,7 +1555,7 @@ function StudentDashboard({ onNavigate }) {
                 <Field label="Current CGPA" value={s.cgpa} edit={editMode} onChange={v => updateField('cgpa', v)} />
               </div>
               <div className="grid-4 mt-3">
-                <Field label="Department" value={s.departmentName} locked={window.VSB_DATA.currentUserRole === 'student'} options={window.VSB_DATA.DEPARTMENTS.map(d => d.name)} edit={editMode} onChange={v => {
+                <Field label="Department" value={s.departmentName} locked={window.VSB_DATA.currentUserRole === 'student'} options={((window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []).map(d => d.name)} edit={editMode} onChange={v => {
                   const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.name === v);
                   if (deptObj) {
                     updateField('department', deptObj.code);
@@ -2851,9 +2851,9 @@ window.AdminLogin = AdminLogin;
 // Admin Panel — full CRUD, bulk import, settings, activity logs
 function AdminPanel({ onNavigate }) {
   const [tab, setTab] = useState('overview');
-  const [departments, setDepartments] = useState(window.VSB_DATA.DEPARTMENTS);
-  const [teachers, setTeachers] = useState(window.VSB_DATA.teachers);
-  const [studentsList, setStudentsList] = useState(window.VSB_DATA.students);
+  const [departments, setDepartments] = useState(() => (window.VSB_DATA && window.VSB_DATA.DEPARTMENTS) || []);
+  const [teachers, setTeachers] = useState(() => (window.VSB_DATA && window.VSB_DATA.teachers) || []);
+  const [studentsList, setStudentsList] = useState(() => (window.VSB_DATA && window.VSB_DATA.students) || []);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -3057,13 +3057,13 @@ function AdminDepartments({ departments, setDepartments }) {
 
     setDepartments([...departments, { code, name, hod, color: newDept.color }]);
     window.VSB_DATA.activityLogs = [{
-      id: window.VSB_DATA.activityLogs.length + 1,
+      id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
       actor: 'Super Admin',
       action: 'Created',
       target: `Department ${code} (${name})`,
       time: 'Just now',
       color: 'accent'
-    }, ...window.VSB_DATA.activityLogs];
+    }, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
     setNewDept({ code: '', name: '', hod: '', color: '#2563EB' });
     setShowAddForm(false);
     alert('Department added successfully!');
@@ -3329,14 +3329,14 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
 
     // Add activity log
     const newLog = {
-      id: window.VSB_DATA.activityLogs.length + 1,
+      id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
       actor: 'Super Admin',
       action: 'create',
       target: `Student ${createdStudent.name} (${regNumUpper})`,
       time: 'Just now',
       color: 'accent'
     };
-    window.VSB_DATA.activityLogs = [newLog, ...window.VSB_DATA.activityLogs];
+    window.VSB_DATA.activityLogs = [newLog, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
 
     // Reset fields
     setNewStudent({
@@ -3403,13 +3403,13 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
               <div>
                 <label className="field-label">Batch</label>
                 <select className="input" value={newStudent.batch} onChange={e => setNewStudent({...newStudent, batch: e.target.value})}>
-                  {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  {((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]).map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               <div>
                 <label className="field-label">Section</label>
                 <select className="input" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section: e.target.value})}>
-                  {window.VSB_DATA.SECTIONS.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                  {((window.VSB_DATA && window.VSB_DATA.SECTIONS) || ["A", "B", "C", "D"]).map(sec => <option key={sec} value={sec}>{sec}</option>)}
                 </select>
               </div>
               <div>
@@ -3448,14 +3448,14 @@ function AdminStudentLogins({ departments, studentsList = [], onDataChanged, set
             <label className="field-label">Batch</label>
             <select className="input" value={filterBatch} onChange={e => { setFilterBatch(e.target.value); setPage(1); }}>
               <option value="ALL">All Batches</option>
-              {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+              {((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]).map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
           <div>
             <label className="field-label">Section</label>
             <select className="input" value={filterSec} onChange={e => { setFilterSec(e.target.value); setPage(1); }}>
               <option value="ALL">All Sections</option>
-              {window.VSB_DATA.SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+              {((window.VSB_DATA && window.VSB_DATA.SECTIONS) || ["A", "B", "C", "D"]).map(s => <option key={s} value={s}>Section {s}</option>)}
             </select>
           </div>
         </div>
@@ -3769,19 +3769,19 @@ function AdminBulkImport({ departments, onImportSuccess }) {
 
   const importStudents = async () => {
     try {
-      const existing = new Set(window.VSB_DATA.students.map(s => s.registerNumber.toUpperCase()));
+      const existing = new Set(((window.VSB_DATA && window.VSB_DATA.students) || []).map(s => s.registerNumber.toUpperCase()));
       const studentsToAdd = parsedStudents.filter(s => !existing.has(s.registerNumber.toUpperCase()));
       
       await window.VSB_API.bulkImportStudents(parsedStudents);
       
       window.VSB_DATA.activityLogs = [{
-        id: window.VSB_DATA.activityLogs.length + 1,
+        id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
         actor: 'Super Admin',
         action: 'Imported',
         target: `${parsedStudents.length} students (Batch ${selectedBatch}) from ${fileName}`,
         time: 'Just now',
         color: 'accent'
-      }, ...window.VSB_DATA.activityLogs];
+      }, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
 
       setImportedCount(parsedStudents.length);
       setStep('done');
@@ -3815,7 +3815,7 @@ function AdminBulkImport({ departments, onImportSuccess }) {
               <div>
                 <label className="field-label">Target Batch</label>
                 <select className="input" value={selectedBatch} onChange={e => setSelectedBatch(e.target.value)}>
-                  {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  {((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]).map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               <div>
@@ -3828,7 +3828,7 @@ function AdminBulkImport({ departments, onImportSuccess }) {
                 <label className="field-label">Default Section</label>
                 <select className="input" value={selectedSection} onChange={e => setSelectedSection(e.target.value)}>
                   <option value="ALL">Auto / Sheet Section</option>
-                  {window.VSB_DATA.SECTIONS.map(sec => <option key={sec} value={sec}>Section {sec}</option>)}
+                  {((window.VSB_DATA && window.VSB_DATA.SECTIONS) || ["A", "B", "C", "D"]).map(sec => <option key={sec} value={sec}>Section {sec}</option>)}
                 </select>
               </div>
             </div>
@@ -3914,7 +3914,7 @@ function AdminActivity() {
         <button className="btn btn-ghost" onClick={() => alert('Activity log exported!')}><Icon name="download" size={14} /> Export Logs</button>
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
-        {window.VSB_DATA.activityLogs.map(l => {
+        {((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).map(l => {
           const chip = l.color === 'brand' ? 'chip-brand' : l.color === 'accent' ? 'chip-accent' : l.color === 'violet' ? 'chip-violet' : l.color === 'amber' ? 'chip-amber' : 'chip-rose';
           return (
             <div key={l.id} className="glass-inner flex items-center gap-4" style={{ padding: '12px 16px' }}>
@@ -3946,13 +3946,13 @@ function AdminSettings() {
     window.VSB_DATA.batchEmailAuth = updated;
     if (window.VSB_DATA.saveToStorage) window.VSB_DATA.saveToStorage();
     window.VSB_DATA.activityLogs = [{
-      id: window.VSB_DATA.activityLogs.length + 1,
+      id: ((window.VSB_DATA && window.VSB_DATA.activityLogs) || []).length + 1,
       actor: 'Super Admin',
       action: 'Updated',
       target: `Email auth rule for Batch ${batch} set to ${updated[batch] ? 'REQUIRED' : 'DISABLED'}`,
       time: 'Just now',
       color: 'violet'
-    }, ...window.VSB_DATA.activityLogs];
+    }, ...((window.VSB_DATA && window.VSB_DATA.activityLogs) || [])];
   };
 
   return (
@@ -3967,7 +3967,7 @@ function AdminSettings() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-          {window.VSB_DATA.BATCHES.map(b => {
+          {((window.VSB_DATA && window.VSB_DATA.BATCHES) || ["2022-2026", "2023-2027", "2024-2028", "2025-2029"]).map(b => {
             const isEnabled = emailAuth[b] === true;
             return (
               <div key={b} className="glass-inner p-4 flex items-center justify-between" style={{ borderRadius: 14, border: isEnabled ? '1px solid var(--accent)' : '1px solid var(--border-strong)' }}>
