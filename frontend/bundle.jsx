@@ -1880,9 +1880,7 @@ function TeacherLogin({ onNavigate }) {
     if (e) e.preventDefault();
     setLoading(true);
     if (!window.VSB_DATA) window.VSB_DATA = {};
-    if (!window.VSB_DATA.selectedFilter) {
-      window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
-    }
+    window.VSB_DATA.selectedFilter = { dept: 'ALL', batch: 'ALL', section: 'ALL' };
     try {
       const teacher = await window.VSB_API.loginTeacher(username);
       if (teacher && teacher.id) window.VSB_DATA.currentTeacherId = teacher.id;
@@ -1981,7 +1979,7 @@ function TeacherDashboard({ onNavigate }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState(() => {
-    return (window.VSB_DATA && window.VSB_DATA.selectedFilter) || { dept: 'ALL', batch: '2024-2028', section: 'ALL' };
+    return (window.VSB_DATA && window.VSB_DATA.selectedFilter) || { dept: 'ALL', batch: 'ALL', section: 'ALL' };
   });
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
