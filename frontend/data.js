@@ -181,5 +181,12 @@ window.VSB_DATA = (() => {
     { id: 4, title: 'Certificate verified',       body: 'AWS Cloud Practitioner added',         time: '2d',  unread: false },
   ];
 
-  return { DEPARTMENTS, BATCHES, SECTIONS, students, teachers, activityLogs, notifications };
+  const batchEmailAuth = {
+    '2022-2026': false,
+    '2023-2027': false,
+    '2024-2028': true,
+    '2025-2029': true,
+  };
+
+  return { DEPARTMENTS, BATCHES, SECTIONS, students, teachers, activityLogs, notifications, batchEmailAuth };
 })();

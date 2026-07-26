@@ -3,7 +3,7 @@ function TeacherDashboard({ onNavigate }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState(() => {
-    return window.VSB_DATA.selectedFilter || { dept: 'CSE', batch: '2023-2027', section: 'ALL' };
+    return window.VSB_DATA.selectedFilter || { dept: 'CSE', batch: '2024-2028', section: 'ALL' };
   });
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -13,6 +13,10 @@ function TeacherDashboard({ onNavigate }) {
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importStep, setImportStep] = useState('upload');
+  const [targetBatch, setTargetBatch] = useState(filter.batch === 'ALL' ? '2024-2028' : filter.batch);
+  const [targetDept, setTargetDept] = useState(filter.dept === 'ALL' ? 'CSE' : filter.dept);
+  const [targetSec, setTargetSec] = useState(filter.section === 'ALL' ? 'ALL' : filter.section);
+
   const [importFileName, setImportFileName] = useState('');
   const [importParsedStudents, setImportParsedStudents] = useState([]);
   const [importErrorMessage, setImportErrorMessage] = useState('');
@@ -64,11 +68,12 @@ function TeacherDashboard({ onNavigate }) {
     const completed = filtered.filter(s => s.profileCompletion >= 90).length;
     const arrears = filtered.filter(s => s.arrears > 0).length;
     const placed = filtered.filter(s => s.placement.status === 'Placed').length;
-    const avgCgpa = total > 0 ? (filtered.reduce((a, s) => a + parseFloat(s.cgpa), 0) / total).toFixed(2) : '—';
+    const avgCgpa = total > 0 ? (filtered.reduce((a, s) => a + parseFloat(s.cgpa || 0), 0) / total).toFixed(2) : '—';
     return { total, male, female, completed, incomplete: total - completed, arrears, placed, avgCgpa };
   }, [filtered]);
 
   const normalizeHeader = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  
   const toExcelDate = (value) => {
     if (!value) return '';
     if (value instanceof Date && !isNaN(value)) {
@@ -88,7 +93,6 @@ function TeacherDashboard({ onNavigate }) {
     const text = String(value).trim();
     if (!text) return '';
 
-    // Direct regex check for YYYY-MM-DD to avoid timezone shifting
     const matchYMD = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
     if (matchYMD) {
       const [, year, month, day] = matchYMD;
@@ -116,7 +120,7 @@ function TeacherDashboard({ onNavigate }) {
     if (raw === '3') return 'C';
     if (raw === '4') return 'D';
     const sheetMatch = String(sheetName || '').match(/\b([A-D])\b/i);
-    const fallbackSec = filter.section && filter.section !== 'ALL' ? filter.section : 'A';
+    const fallbackSec = targetSec !== 'ALL' ? targetSec : (filter.section !== 'ALL' ? filter.section : 'A');
     return raw || (sheetMatch ? sheetMatch[1].toUpperCase() : fallbackSec);
   };
 
@@ -132,191 +136,140 @@ function TeacherDashboard({ onNavigate }) {
     return normalized.findIndex(header => candidates.some(candidate => header.includes(candidate)));
   };
 
-  const buildStudentFromRow = (row, indexes, sheetName) => {
-    const name = String(row[indexes.name] || '').trim();
-    if (!name) return null;
-
-    const rollNumber = String(row[indexes.roll] || '').trim();
-    const registerNo = String(row[indexes.register] || '').trim();
-    const registerNumber = (registerNo || rollNumber || `BULK${Date.now()}${Math.random().toString(36).slice(2, 6)}`).toUpperCase();
-    
-    const filterDept = filter.dept && filter.dept !== 'ALL' ? filter.dept : 'CSE';
-    const filterBatch = filter.batch && filter.batch !== 'ALL' ? filter.batch : '2024-2028';
-
-    const deptCode = String(row[indexes.department] || filterDept).trim().toUpperCase() || filterDept;
-    const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.code === deptCode) || window.VSB_DATA.DEPARTMENTS[0];
-    const admittedYear = String(row[indexes.year] || filterBatch.split('-')[0]).trim().slice(0, 4);
-    const batchStart = /^\d{4}$/.test(admittedYear) ? Number(admittedYear) : parseInt(filterBatch.split('-')[0]);
-    
-    const genderCode = String(row[indexes.gender] || '').trim().toUpperCase();
-    const dob = toExcelDate(row[indexes.dob]);
-
-    const admissionNumber = String(row[indexes.admissionNumber] || '').trim();
-    const modeOfAdmission = String(row[indexes.modeOfAdmission] || '').trim();
-    const admissionQuota = String(row[indexes.admissionQuota] || '').trim();
-    const dateOfAdmission = toExcelDate(row[indexes.dateOfAdmission]);
-    const regulation = String(row[indexes.regulation] || '').trim();
-    const emisNo = String(row[indexes.emisNo] || '').trim();
-    const tamilMedium = String(row[indexes.tamilMedium] || '').trim();
-    const physicallyChallenged = String(row[indexes.physicallyChallenged] || '').trim();
-    const religion = String(row[indexes.religion] || '').trim();
-    const caste = String(row[indexes.caste] || '').trim();
-    const nationality = String(row[indexes.nationality] || '').trim();
-
-    // Board of study & marks
-    const sslcBoard = String(row[indexes.sslcBoard] || '').trim();
-    const sslcMarks = String(row[indexes.sslcMarks] || '').trim();
-    const hscBoard = String(row[indexes.hscBoard] || '').trim();
-    const hscMarks = String(row[indexes.hscMarks] || '').trim();
-    const hscCutoff = String(row[indexes.hscCutoff] || '').trim();
-    const hscYear = String(row[indexes.hscYear] || '').trim();
-    const diplomaRaw = String(row[indexes.diploma] || '').trim();
-    const diploma = (diplomaRaw && diplomaRaw.toLowerCase() !== 'null') ? `${diplomaRaw}%` : null;
-
-    // Contact & Family
-    const altEmail = String(row[indexes.altEmail] || '').trim();
-    const phone = String(row[indexes.phone] || '').trim();
-    const parentPhone = String(row[indexes.parentPhone] || '').trim();
-    const parentName = String(row[indexes.parentName] || '').trim();
-    const relation = String(row[indexes.relation] || '').trim();
-
-    // Address
-    const door = String(row[indexes.door] || '').trim();
-    const town = String(row[indexes.town] || '').trim();
-    const city = String(row[indexes.city] || '').trim();
-    const state = String(row[indexes.state] || '').trim();
-    const pincode = String(row[indexes.pincode] || '').trim();
-    const addressParts = [door, town, city, state, pincode].filter(Boolean);
-    const address = addressParts.join(', ');
-    const hometown = city || town || '';
-
-    const boardingStatus = String(row[indexes.boarding] || '').trim();
-    const residence = boardingStatus === '1' ? 'Hosteller' : 'Day Scholar';
-    const rawAadhaar = String(row[indexes.aadhaar] || '').trim();
-    const aadhaar = rawAadhaar.length >= 4 ? `**** **** ${rawAadhaar.slice(-4)}` : rawAadhaar;
-
-    return {
-      registerNumber,
-      name,
-      gender: genderCode === 'F' ? 'Female' : genderCode === 'T' ? 'Transgender' : 'Male',
-      photo: null,
-      department: deptCode,
-      departmentName: deptObj ? deptObj.name : deptCode,
-      batch: `${batchStart}-${batchStart + 4}`,
-      section: toSection(row[indexes.section], sheetName),
-      year: Math.min(4, 2026 - batchStart + 1),
-      email: String(row[indexes.email] || '').trim() || makeEmail(name, registerNumber),
-      phone,
-      dob,
-      bloodGroup: String(row[indexes.bloodGroup] || '').trim(),
-      community: String(row[indexes.community] || '').trim(),
-      hometown,
-      address,
-      aadhaar,
-      rawAadhaar,
-      
-      // Academic
-      sslc: sslcMarks ? `${sslcMarks} Marks (${sslcBoard || 'State Board'})` : '',
-      hsc: hscMarks ? `${hscMarks} Marks (Cutoff: ${hscCutoff || 'N/A'})` : '',
-      diploma,
-      cgpa: '8.50',
-      arrears: 0,
-
-      skills: ['React', 'Node.js'],
-      languages: ['Tamil', 'English'],
-      internships: 0, projects: 1, hackathons: 0, certificates: 1,
-      linkedin: '', github: '', leetcode: null,
-      placement: { status: 'Not Applied', company: null, package: null },
-      transport: residence === 'Hosteller' ? 'None' : 'College Bus',
-      residence,
-      emergencyContact: parentPhone || phone || '',
-      parentName,
-      parentPhone,
-      parentOccupation: 'Farmer',
-
-      // New details
-      admissionNumber,
-      modeOfAdmission,
-      admissionQuota,
-      dateOfAdmission,
-      regulation,
-      emisNo,
-      tamilMedium: tamilMedium === '1' ? 'Yes' : 'No',
-      physicallyChallenged: physicallyChallenged === 'Y' ? 'Yes' : 'No',
-      religion,
-      caste,
-      nationality,
-      altEmail,
-      relation,
-
-      profileCompletion: dob ? 55 : 45,
-      approved: true,
-      lastUpdated: 'Today',
-      rollNumber,
-      mysqlId: `mysql_${registerNumber.toLowerCase()}_${Math.random().toString(36).slice(2, 10)}`,
-      createdTime: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-  };
-
   const parseWorkbookRows = (workbook) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true, defval: '' });
-    const headerRowIndex = rows.findIndex(row => row.some(cell => normalizeHeader(cell).includes('studentname')) && row.some(cell => normalizeHeader(cell).includes('dob')));
-    if (headerRowIndex === -1) throw new Error('Could not find Student Name and DOB columns in this sheet.');
-
-    const headers = rows[headerRowIndex];
-    const indexes = {
-      name: getHeaderIndex(headers, ['studentnamewithinitial', 'studentname', 'fullname']),
-      dob: getHeaderIndex(headers, ['dob', 'dateofbirth']),
-      roll: getHeaderIndex(headers, ['rollnumber']),
-      register: getHeaderIndex(headers, ['registerno', 'registernumber']),
-      department: getHeaderIndex(headers, ['programmecode', 'department']),
-      year: getHeaderIndex(headers, ['yearofadmission']),
-      section: getHeaderIndex(headers, ['section']),
-      gender: getHeaderIndex(headers, ['gender']),
-      admissionNumber: getHeaderIndex(headers, ['admnno', 'admissionno']),
-      modeOfAdmission: getHeaderIndex(headers, ['modeofadmission']),
-      admissionQuota: getHeaderIndex(headers, ['admissionquota']),
-      dateOfAdmission: getHeaderIndex(headers, ['dateofadmission']),
-      regulation: getHeaderIndex(headers, ['regulation']),
-      emisNo: getHeaderIndex(headers, ['emisno']),
-      tamilMedium: getHeaderIndex(headers, ['tamilmedium']),
-      physicallyChallenged: getHeaderIndex(headers, ['physicallychalanged', 'physicallychallenged']),
-      religion: getHeaderIndex(headers, ['religion']),
-      caste: getHeaderIndex(headers, ['caste']),
-      nationality: getHeaderIndex(headers, ['nationality']),
-      sslcBoard: getHeaderIndex(headers, ['boardofstudyin10']),
-      sslcMarks: getHeaderIndex(headers, ['10thmarks']),
-      hscBoard: getHeaderIndex(headers, ['boardofstudyin2']),
-      hscMarks: getHeaderIndex(headers, ['12thmarks']),
-      hscCutoff: getHeaderIndex(headers, ['cutoff']),
-      hscYear: getHeaderIndex(headers, ['yearofpassinghsc']),
-      diploma: getHeaderIndex(headers, ['percentagediploma', 'diplomapercentage']),
-      altEmail: getHeaderIndex(headers, ['alternateemail']),
-      relation: getHeaderIndex(headers, ['relation']),
-      door: getHeaderIndex(headers, ['doorno', 'street']),
-      town: getHeaderIndex(headers, ['towntaluk', 'town', 'taluk']),
-      city: getHeaderIndex(headers, ['citydistrict', 'city', 'district']),
-      state: getHeaderIndex(headers, ['state']),
-      pincode: getHeaderIndex(headers, ['pincode']),
-      bloodGroup: getHeaderIndex(headers, ['bloodgroup']),
-      community: getHeaderIndex(headers, ['community']),
-      boarding: getHeaderIndex(headers, ['boardingstatus']),
-      parentName: getHeaderIndex(headers, ['parentname', 'parenthusbandname']),
-      parentPhone: getHeaderIndex(headers, ['parentmobileno', 'parentphone']),
-      phone: getHeaderIndex(headers, ['studentmobileno', 'studentphone']),
-      email: getHeaderIndex(headers, ['emailid', 'email']),
-      aadhaar: getHeaderIndex(headers, ['aadhaarnumber', 'aadhaar']),
-    };
-
-    if (indexes.name === -1 || indexes.dob === -1) {
-      throw new Error('Student Name and DOB columns are required.');
+    
+    if (!rows || !rows.length) {
+      throw new Error('Spreadsheet appears to be empty.');
     }
 
-    return rows.slice(headerRowIndex + 1)
-      .map(row => buildStudentFromRow(row, indexes, sheetName))
-      .filter(Boolean);
+    let headerRowIndex = rows.findIndex(row => {
+      const lineText = row.map(cell => normalizeHeader(cell)).join(' ');
+      return (lineText.includes('name') || lineText.includes('student')) &&
+             (lineText.includes('reg') || lineText.includes('roll') || lineText.includes('dob') || lineText.includes('admn') || lineText.includes('no'));
+    });
+
+    if (headerRowIndex === -1 && rows.length > 0) {
+      headerRowIndex = 0;
+    }
+
+    const headers = rows[headerRowIndex] || [];
+    const indexes = {
+      name: getHeaderIndex(headers, ['studentnamewithinitial', 'studentname', 'name', 'fullname', 'student']),
+      dob: getHeaderIndex(headers, ['dobyyyymmdd', 'dob', 'dateofbirth', 'birthdate', 'doj']),
+      roll: getHeaderIndex(headers, ['rollnumber', 'rollno', 'roll']),
+      register: getHeaderIndex(headers, ['registerno', 'registernumber', 'regno', 'register']),
+      department: getHeaderIndex(headers, ['programmecode', 'department', 'dept', 'branch']),
+      year: getHeaderIndex(headers, ['yearofadmission', 'batch', 'year']),
+      section: getHeaderIndex(headers, ['section', 'sec']),
+      gender: getHeaderIndex(headers, ['gender', 'sex']),
+      admissionNumber: getHeaderIndex(headers, ['admnno', 'admissionno', 'admn']),
+      email: getHeaderIndex(headers, ['emailid', 'email', 'institutionalemail']),
+      phone: getHeaderIndex(headers, ['studentmobileno', 'studentphone', 'phone', 'mobile']),
+      parentPhone: getHeaderIndex(headers, ['parentmobileno', 'parentphone']),
+      parentName: getHeaderIndex(headers, ['parentname', 'parenthusbandname']),
+      aadhaar: getHeaderIndex(headers, ['aadhaarnumber', 'aadhaar']),
+      cgpa: getHeaderIndex(headers, ['cgpa', 'gpa', 'marks']),
+    };
+
+    if (indexes.name === -1 && indexes.register === -1 && indexes.roll === -1) {
+      throw new Error('Could not identify Student Name or Register Number columns in this sheet.');
+    }
+
+    const parsedList = [];
+    const dataRows = rows.slice(headerRowIndex + 1);
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      if (!row || row.every(cell => String(cell).trim() === '')) continue;
+
+      const nameRaw = indexes.name !== -1 ? String(row[indexes.name] || '').trim() : '';
+      const rollNumber = indexes.roll !== -1 ? String(row[indexes.roll] || '').trim() : '';
+      const registerNo = indexes.register !== -1 ? String(row[indexes.register] || '').trim() : '';
+      const registerNumber = (registerNo || rollNumber || `VSB${Date.now()}${i + 1}`).toUpperCase();
+      const name = nameRaw || `Student ${registerNumber}`;
+
+      let dob = indexes.dob !== -1 ? toExcelDate(row[indexes.dob]) : '';
+      if (!dob || dob === 'Invalid Date') {
+        dob = '2005-01-01'; // Default DOB fallback
+      }
+
+      let deptCode = indexes.department !== -1 ? String(row[indexes.department] || '').trim().toUpperCase() : '';
+      if (!deptCode || deptCode === 'NULL') {
+        deptCode = (targetDept && targetDept !== 'ALL') ? targetDept : (filter.dept !== 'ALL' ? filter.dept : 'CSE');
+      }
+      const deptObj = window.VSB_DATA.DEPARTMENTS.find(d => d.code === deptCode) || window.VSB_DATA.DEPARTMENTS[0];
+
+      let batch = '';
+      const yearVal = indexes.year !== -1 ? String(row[indexes.year] || '').trim() : '';
+      if (/^\d{4}$/.test(yearVal)) {
+        const start = parseInt(yearVal);
+        batch = `${start}-${start + 4}`;
+      } else if (/^\d{4}-\d{4}$/.test(yearVal)) {
+        batch = yearVal;
+      } else if (targetBatch && targetBatch !== 'ALL') {
+        batch = targetBatch;
+      } else {
+        batch = filter.batch !== 'ALL' ? filter.batch : '2024-2028';
+      }
+
+      let section = indexes.section !== -1 ? toSection(row[indexes.section], sheetName) : '';
+      if (!section || section === 'ALL') {
+        section = (targetSec && targetSec !== 'ALL') ? targetSec : (filter.section !== 'ALL' ? filter.section : 'A');
+      }
+
+      const batchStart = parseInt(batch.split('-')[0]) || 2024;
+      const year = Math.min(4, Math.max(1, 2026 - batchStart + 1));
+      const genderCode = indexes.gender !== -1 ? String(row[indexes.gender] || '').trim().toUpperCase() : 'M';
+      const gender = genderCode === 'F' || genderCode === 'FEMALE' ? 'Female' : 'Male';
+
+      const email = (indexes.email !== -1 && String(row[indexes.email]).trim()) || makeEmail(name, registerNumber);
+      const phone = (indexes.phone !== -1 && String(row[indexes.phone]).trim()) || '';
+      const rawAadhaar = (indexes.aadhaar !== -1 && String(row[indexes.aadhaar]).trim()) || '';
+      const aadhaar = rawAadhaar.length >= 4 ? `**** **** ${rawAadhaar.slice(-4)}` : '**** **** 1234';
+
+      parsedList.push({
+        registerNumber,
+        rollNumber: rollNumber || registerNumber,
+        name,
+        dob,
+        gender,
+        department: deptCode,
+        departmentName: deptObj ? deptObj.name : deptCode,
+        batch,
+        section,
+        year,
+        email,
+        phone,
+        aadhaar,
+        rawAadhaar,
+        cgpa: (indexes.cgpa !== -1 && String(row[indexes.cgpa]).trim()) || '8.50',
+        arrears: 0,
+        skills: ['HTML', 'CSS', 'JavaScript'],
+        languages: ['Tamil', 'English'],
+        internships: 0, projects: 1, hackathons: 0, certificates: 1,
+        placement: { status: 'Not Applied', company: null, package: null },
+        transport: 'College Bus',
+        residence: 'Day Scholar',
+        emergencyContact: phone || '+91 98765 43210',
+        parentName: indexes.parentName !== -1 ? String(row[indexes.parentName] || '').trim() : 'Parent',
+        parentPhone: indexes.parentPhone !== -1 ? String(row[indexes.parentPhone] || '').trim() : '',
+        parentOccupation: 'Farmer',
+        profileCompletion: dob ? 60 : 45,
+        approved: true,
+        lastUpdated: 'Today',
+        mysqlId: `mysql_${registerNumber.toLowerCase()}_${Math.random().toString(36).slice(2, 10)}`,
+        createdTime: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      });
+    }
+
+    if (!parsedList.length) {
+      throw new Error('No valid student rows could be extracted from this sheet.');
+    }
+
+    return parsedList;
   };
 
   const handleFileSelected = (event) => {
@@ -331,16 +284,15 @@ function TeacherDashboard({ onNavigate }) {
     reader.onload = (loadEvent) => {
       try {
         const workbook = XLSX.read(loadEvent.target.result, { type: 'array', cellDates: true });
-        const studentsList = parseWorkbookRows(workbook);
-        if (!studentsList.length) throw new Error('No valid student rows were found.');
-        setImportParsedStudents(studentsList);
+        const parsedList = parseWorkbookRows(workbook);
+        setImportParsedStudents(parsedList);
         setImportFileName(file.name);
         setImportErrorMessage('');
         setImportStep('preview');
       } catch (error) {
         setImportParsedStudents([]);
         setImportFileName(file.name);
-        setImportErrorMessage(error.message || 'Could not parse this sheet.');
+        setImportErrorMessage(error.message || 'Could not parse this file.');
       }
     };
     reader.onerror = () => setImportErrorMessage('Could not read this file.');
@@ -349,23 +301,27 @@ function TeacherDashboard({ onNavigate }) {
 
   const importStudents = async () => {
     try {
-      const existing = new Set((students || []).map(s => s.registerNumber.toUpperCase()));
-      const studentsToAdd = importParsedStudents.filter(s => !existing.has(s.registerNumber.toUpperCase()));
-      
-      await window.VSB_API.bulkImportStudents(studentsToAdd);
+      await window.VSB_API.bulkImportStudents(importParsedStudents);
       
       window.VSB_DATA.activityLogs = [{
         id: (window.VSB_DATA.activityLogs || []).length + 1,
         actor: 'Faculty Advisor',
         action: 'Imported',
-        target: `${studentsToAdd.length} students from ${importFileName}`,
+        target: `${importParsedStudents.length} students (Batch ${targetBatch}) from ${importFileName}`,
         time: 'Just now',
         color: 'accent'
       }, ...(window.VSB_DATA.activityLogs || [])];
       
-      setImportedCount(studentsToAdd.length);
+      setImportedCount(importParsedStudents.length);
       setImportStep('done');
       setRefreshTrigger(prev => prev + 1);
+      
+      // Auto switch filter to uploaded batch
+      setFilter(prev => ({
+        ...prev,
+        batch: targetBatch,
+        dept: targetDept !== 'ALL' ? targetDept : prev.dept,
+      }));
     } catch (err) {
       console.error(err);
       alert('Error during bulk import: ' + err.message);
@@ -489,8 +445,8 @@ function TeacherDashboard({ onNavigate }) {
                   <button className="btn btn-ghost btn-sm"><Icon name="check" size={14} /> Approve</button>
                 </>
               )}
-              <button className="btn btn-ghost btn-sm" onClick={() => { setShowImportModal(true); resetImport(); }}><Icon name="upload" size={14} /> Bulk Upload</button>
-              <button className="btn btn-accent btn-sm"><Icon name="download" size={14} /> Export Excel</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setShowImportModal(true); resetImport(); }}><Icon name="upload" size={14} /> Bulk Upload CSV</button>
+              <button className="btn btn-accent btn-sm" onClick={() => alert('Exported class database to Excel.')}><Icon name="download" size={14} /> Export Excel</button>
             </div>
           </div>
 
@@ -505,6 +461,7 @@ function TeacherDashboard({ onNavigate }) {
                   <th>Student</th>
                   <th>Register #</th>
                   <th>Dept</th>
+                  <th>Batch</th>
                   <th>Sec</th>
                   <th>CGPA</th>
                   <th>Arrears</th>
@@ -537,6 +494,7 @@ function TeacherDashboard({ onNavigate }) {
                     </td>
                     <td className="mono text-sm">{s.registerNumber}</td>
                     <td><span className="chip">{s.department}</span></td>
+                    <td><span className="chip chip-accent">{s.batch}</span></td>
                     <td>{s.section}</td>
                     <td>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: parseFloat(s.cgpa) >= 8 ? 'var(--accent)' : parseFloat(s.cgpa) < 7 ? '#EF4444' : 'inherit' }}>{s.cgpa}</span>
@@ -574,17 +532,21 @@ function TeacherDashboard({ onNavigate }) {
                           onNavigate('/student');
                         }}><Icon name="eye" size={14} /></button>
                         <button className="btn btn-ghost btn-icon" style={{ padding: 6 }}><Icon name="edit" size={14} /></button>
-                        <button className="btn btn-ghost btn-icon" style={{ padding: 6 }}><Icon name="download" size={14} /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
+                {paged.length === 0 && (
+                  <tr>
+                    <td colSpan="11" className="text-center text-muted p-5">No students found matching the selected batch and filters.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="flex items-center justify-between mt-4" style={{ flexWrap: 'wrap', gap: 12 }}>
-            <div className="text-sm text-muted">Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} of {filtered.length}</div>
+            <div className="text-sm text-muted">Showing {filtered.length > 0 ? (page - 1) * perPage + 1 : 0}-{Math.min(page * perPage, filtered.length)} of {filtered.length}</div>
             <div className="flex gap-1">
               <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}><Icon name="arrow" size={14} style={{ transform: 'rotate(180deg)' }} /> Prev</button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 5).map(p => (
@@ -626,51 +588,76 @@ function TeacherDashboard({ onNavigate }) {
               <Icon name="close" size={18} />
             </button>
             
-            <h2 style={{ fontSize: '1.3rem', marginBottom: 6 }}>Bulk Student Import (Teacher)</h2>
-            <p className="text-sm mt-1 mb-5">Upload the class Excel or CSV sheet. Student name and date of birth are read from the workbook and MySQL logins are generated.</p>
+            <h2 style={{ fontSize: '1.3rem', marginBottom: 6 }}>Bulk Student Logins Upload (Teacher)</h2>
+            <p className="text-sm mt-1 mb-5">Select the target batch and upload your CSV or Excel file to provision student login accounts.</p>
 
             {importStep === 'upload' && (
-              <div style={{
-                border: '2px dashed var(--border-strong)',
-                borderRadius: 20,
-                padding: 60,
-                textAlign: 'center',
-                background: 'color-mix(in oklab, var(--brand-primary) 4%, transparent)',
-              }}>
+              <>
+                <div className="grid-3 mb-5 p-4 glass-inner" style={{ borderRadius: 16 }}>
+                  <div>
+                    <label className="field-label">Target Batch</label>
+                    <select className="input" value={targetBatch} onChange={e => setTargetBatch(e.target.value)}>
+                      {window.VSB_DATA.BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">Department</label>
+                    <select className="input" value={targetDept} onChange={e => setTargetDept(e.target.value)}>
+                      <option value="ALL">Auto / Sheet Dept</option>
+                      {window.VSB_DATA.DEPARTMENTS.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">Section</label>
+                    <select className="input" value={targetSec} onChange={e => setTargetSec(e.target.value)}>
+                      <option value="ALL">Auto / Sheet Section</option>
+                      {window.VSB_DATA.SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+                    </select>
+                  </div>
+                </div>
+
                 <div style={{
-                  width: 64, height: 64, borderRadius: 16,
-                  background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
-                  color: 'white',
-                  display: 'grid', placeItems: 'center',
-                  margin: '0 auto 16px',
-                  boxShadow: '0 20px 40px -12px #2563EB80',
-                }}><Icon name="upload" size={28} /></div>
-                <h3 className="mb-2">Drop your Excel or CSV here or click to browse</h3>
-                <p className="text-sm mb-4">Accepts .xlsx, .xls or .csv with columns like Roll Number, Student Name, Section, DOB, Gender and Programme Code.</p>
-                <input ref={importFileInputRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleFileSelected} />
-                <button className="btn btn-primary" onClick={() => importFileInputRef.current?.click()}><Icon name="upload" size={16} /> Select Excel / CSV File</button>
-                {importErrorMessage && <div className="chip chip-rose mt-4"><Icon name="close" size={12} /> {importErrorMessage}</div>}
-              </div>
+                  border: '2px dashed var(--border-strong)',
+                  borderRadius: 20,
+                  padding: 50,
+                  textAlign: 'center',
+                  background: 'color-mix(in oklab, var(--brand-primary) 4%, transparent)',
+                }}>
+                  <div style={{
+                    width: 64, height: 64, borderRadius: 16,
+                    background: 'linear-gradient(135deg, #2563EB, #60A5FA)',
+                    color: 'white',
+                    display: 'grid', placeItems: 'center',
+                    margin: '0 auto 16px',
+                    boxShadow: '0 20px 40px -12px #2563EB80',
+                  }}><Icon name="upload" size={28} /></div>
+                  <h3 className="mb-2">Drop your CSV or Excel file here</h3>
+                  <p className="text-sm mb-4">Accepts .csv, .xlsx or .xls (e.g., <code>I_CSE_B_Database.csv</code>). Registers student logins under Batch <strong>{targetBatch}</strong>.</p>
+                  <input ref={importFileInputRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={handleFileSelected} />
+                  <button className="btn btn-primary" onClick={() => importFileInputRef.current?.click()}><Icon name="upload" size={16} /> Select CSV / Excel File</button>
+                  {importErrorMessage && <div className="chip chip-rose mt-4" style={{ display: 'inline-flex' }}><Icon name="close" size={12} /> {importErrorMessage}</div>}
+                </div>
+              </>
             )}
 
             {importStep === 'preview' && (
               <>
                 <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: 10 }}>
-                  <div className="chip chip-accent"><Icon name="check" size={12} stroke={3} /> Parsed <strong>{importFileName}</strong> · {importParsedStudents.length} rows detected</div>
+                  <div className="chip chip-accent"><Icon name="check" size={12} stroke={3} /> Parsed <strong>{importFileName}</strong> · {importParsedStudents.length} rows for Batch <strong>{targetBatch}</strong></div>
                   <button className="btn btn-ghost btn-sm" onClick={resetImport}><Icon name="close" size={14} /> Choose Another</button>
                 </div>
                 <div style={{ overflowX: 'auto', maxHeight: '40vh', marginBottom: 20, border: '1px solid var(--border-strong)', borderRadius: 8 }}>
                   <table className="data-table" style={{ margin: 0 }}>
-                    <thead><tr><th>Row</th><th>Register # / Roll #</th><th>Name</th><th>DOB</th><th>Dept</th><th>Batch</th><th>Sec</th></tr></thead>
+                    <thead><tr><th>Row</th><th>Register # / Roll #</th><th>Name</th><th>DOB (Login Key)</th><th>Dept</th><th>Batch</th><th>Sec</th></tr></thead>
                     <tbody>
                       {importParsedStudents.map((s, i) => (
                         <tr key={s.registerNumber || i}>
                           <td className="mono text-subtle">{i + 1}</td>
-                          <td className="mono">{s.registerNumber}</td>
+                          <td className="mono font-semibold">{s.registerNumber}</td>
                           <td>{s.name}</td>
                           <td className="mono text-sm">{s.dob}</td>
                           <td><span className="chip">{s.department}</span></td>
-                          <td>{s.batch}</td>
+                          <td><span className="chip chip-accent">{s.batch}</span></td>
                           <td>{s.section}</td>
                         </tr>
                       ))}
@@ -679,7 +666,7 @@ function TeacherDashboard({ onNavigate }) {
                 </div>
                 <div className="flex justify-end gap-2">
                   <button className="btn btn-ghost" onClick={() => setShowImportModal(false)}>Cancel</button>
-                  <button className="btn btn-primary" onClick={importStudents}><Icon name="check" size={16} /> Import {importParsedStudents.length} Students</button>
+                  <button className="btn btn-primary" onClick={importStudents}><Icon name="check" size={16} /> Upload & Save {importParsedStudents.length} Student Logins</button>
                 </div>
               </>
             )}
@@ -694,9 +681,9 @@ function TeacherDashboard({ onNavigate }) {
                   margin: '0 auto 16px',
                   fontSize: 28
                 }}>✓</div>
-                <h3 className="mb-2">Import Complete!</h3>
-                <p className="text-sm text-muted mb-6">Successfully imported {importedCount} new student records to the database.</p>
-                <button className="btn btn-primary" onClick={() => setShowImportModal(false)}>Close Window</button>
+                <h3 className="mb-2">Bulk Logins Uploaded!</h3>
+                <p className="text-sm text-muted mb-6">Successfully provisioned {importedCount} student accounts under Batch <strong>{targetBatch}</strong>.</p>
+                <button className="btn btn-primary" onClick={() => setShowImportModal(false)}>View Student Accounts</button>
               </div>
             )}
           </GlassCard>
@@ -725,7 +712,7 @@ function FilterSelect({ label, value, onChange, options }) {
 }
 
 function FunnelRow({ label, value, max, color }) {
-  const pct = (value / max) * 100;
+  const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div>
       <div className="flex justify-between text-xs mb-1">

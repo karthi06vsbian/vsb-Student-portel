@@ -234,9 +234,9 @@ def teacher_students(request):
         section = request.GET.get('section', '').strip()
         
         query = Student.objects.all()
-        if dept:
+        if dept and dept != 'ALL':
             query = query.filter(department=dept)
-        if batch:
+        if batch and batch != 'ALL':
             query = query.filter(batch=batch)
         if section and section != 'ALL':
             query = query.filter(section=section)
