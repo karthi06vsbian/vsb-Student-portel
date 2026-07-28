@@ -1342,9 +1342,12 @@ export default function AdminDashboard({
             </div>
 
             <form onSubmit={handleAdminSaveStudent} className="space-y-4">
-              {/* Section 1: Basic Identifiers */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <h4 className="font-bold text-slate-800 text-xs uppercase">Basic Identifiers</h4>
+              {/* Section 1: Basic Identifiers & Registration */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <UserCheck className="w-4 h-4 text-purple-600" />
+                  <span>1. Student Identifiers & Login Info</span>
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Full Name *</label>
@@ -1353,157 +1356,410 @@ export default function AdminDashboard({
                       required
                       value={editingStudent.name || ''}
                       onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value.toUpperCase() })}
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold uppercase"
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-extrabold uppercase"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Register Number (Login ID)</label>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Register Number (Login ID) *</label>
                     <input
                       type="text"
+                      required
                       value={editingStudent.regNo || ''}
                       onChange={(e) => setEditingStudent({ ...editingStudent, regNo: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono font-bold"
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono font-bold text-blue-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Date of Birth (Login DOB)</label>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Date of Birth (Login DOB) *</label>
                     <input
                       type="date"
+                      required
                       value={editingStudent.dob || ''}
                       onChange={(e) => setEditingStudent({ ...editingStudent, dob: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Roll Number</label>
+                    <input
+                      type="text"
+                      value={editingStudent.rollNo || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, rollNo: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Admission Number</label>
+                    <input
+                      type="text"
+                      value={editingStudent.admnNo || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, admnNo: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">EMIS Number</label>
+                    <input
+                      type="text"
+                      value={editingStudent.emisNo || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, emisNo: e.target.value })}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Section 2: Department, Batch & Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Department</label>
-                  <select
-                    value={editingStudent.dept || 'CSE'}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, dept: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  >
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.code}>{d.code} - {d.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Academic Batch</label>
-                  <select
-                    value={editingStudent.batch || '2024-2028'}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, batch: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  >
-                    {batches.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Section</label>
-                  <select
-                    value={editingStudent.section || 'Sec A'}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, section: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  >
-                    {sections.map((sec) => (
-                      <option key={sec} value={sec}>{sec}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Section 3: Academic Performance */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">10th Marks</label>
-                  <input
-                    type="text"
-                    value={editingStudent.marks10th || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, marks10th: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">12th Marks</label>
-                  <input
-                    type="text"
-                    value={editingStudent.marks12th || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, marks12th: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">HSC Cutoff</label>
-                  <input
-                    type="text"
-                    value={editingStudent.cutoffHsc || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, cutoffHsc: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-blue-600"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">CGPA</label>
-                  <input
-                    type="text"
-                    value={editingStudent.cgpa || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, cgpa: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-emerald-600"
-                  />
+              {/* Section 2: Department, Batch & Attendance */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <GraduationCap className="w-4 h-4 text-blue-600" />
+                  <span>2. Department, Batch & Attendance</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Department</label>
+                    <select
+                      value={editingStudent.dept || 'CSE'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, dept: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    >
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.code}>{d.code} - {d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Academic Batch</label>
+                    <select
+                      value={editingStudent.batch || '2024-2028'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, batch: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    >
+                      {batches.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Section</label>
+                    <select
+                      value={editingStudent.section || 'Sec A'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, section: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    >
+                      {sections.map((sec) => (
+                        <option key={sec} value={sec}>{sec}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Attendance %</label>
+                    <input
+                      type="text"
+                      placeholder="95.0"
+                      value={editingStudent.attendance || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, attendance: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold text-emerald-600"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Section 4: Contact & Parent Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Name</label>
-                  <input
-                    type="text"
-                    value={editingStudent.parentName || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, parentName: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Mobile</label>
-                  <input
-                    type="text"
-                    value={editingStudent.parentMobile || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, parentMobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Mobile</label>
-                  <input
-                    type="text"
-                    value={editingStudent.studentMobile || ''}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, studentMobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                  />
+              {/* Section 3: Academic Marks & CGPA */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>3. Academic Marks & Cutoff</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">10th Marks</label>
+                    <input
+                      type="text"
+                      value={editingStudent.marks10th || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, marks10th: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">12th Marks</label>
+                    <input
+                      type="text"
+                      value={editingStudent.marks12th || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, marks12th: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">HSC Cutoff</label>
+                    <input
+                      type="text"
+                      value={editingStudent.cutoffHsc || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, cutoffHsc: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold text-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">CGPA</label>
+                    <input
+                      type="text"
+                      value={editingStudent.cgpa || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, cgpa: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold text-emerald-600"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-200">
+              {/* Section 4: Personal, Family & Category */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <Users className="w-4 h-4 text-amber-600" />
+                  <span>4. Personal, Category & Parent Info</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Gender</label>
+                    <select
+                      value={editingStudent.gender || 'M'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, gender: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    >
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Community</label>
+                    <input
+                      type="text"
+                      placeholder="BC / MBC / OC / SC"
+                      value={editingStudent.community || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, community: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Caste</label>
+                    <input
+                      type="text"
+                      value={editingStudent.caste || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, caste: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Blood Group</label>
+                    <input
+                      type="text"
+                      placeholder="O+ / A+"
+                      value={editingStudent.bloodGroup || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, bloodGroup: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Boarding Status</label>
+                    <select
+                      value={editingStudent.boardingStatus || 'Dayscholar'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, boardingStatus: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    >
+                      <option value="Dayscholar">Dayscholar</option>
+                      <option value="Hosteller">Hosteller</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Name</label>
+                    <input
+                      type="text"
+                      value={editingStudent.parentName || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, parentName: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Mobile</label>
+                    <input
+                      type="text"
+                      value={editingStudent.parentMobile || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, parentMobile: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Mobile</label>
+                    <input
+                      type="text"
+                      value={editingStudent.studentMobile || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, studentMobile: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Email ID</label>
+                    <input
+                      type="email"
+                      value={editingStudent.email || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Address Details */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <UserCheck className="w-4 h-4 text-indigo-600" />
+                  <span>5. Full Residential Address</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Door No / Street</label>
+                    <input
+                      type="text"
+                      value={editingStudent.doorNoStreet || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, doorNoStreet: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Town / Taluk</label>
+                    <input
+                      type="text"
+                      value={editingStudent.townTaluk || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, townTaluk: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">City / District</label>
+                    <input
+                      type="text"
+                      value={editingStudent.cityDistrict || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, cityDistrict: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">State</label>
+                    <input
+                      type="text"
+                      value={editingStudent.state || 'Tamil Nadu'}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, state: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Pincode</label>
+                    <input
+                      type="text"
+                      value={editingStudent.pincode || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, pincode: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 6: Certificate Drive Links & Coding Profiles */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase flex items-center space-x-1.5 border-b border-slate-200/60 pb-1.5">
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>6. Google Drive Certificates & Coding Links</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">10th Marksheet Drive Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={editingStudent.doc10th || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, doc10th: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-blue-600 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">12th Marksheet Drive Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={editingStudent.doc12th || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, doc12th: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-blue-600 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Community Certificate Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={editingStudent.docCommunity || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, docCommunity: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-emerald-600 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Aadhaar Card Drive Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={editingStudent.docAadhaar || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, docAadhaar: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-purple-600 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">LinkedIn Profile Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://linkedin.com/in/..."
+                      value={editingStudent.linkLinkedin || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, linkLinkedin: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono text-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">LeetCode Profile Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://leetcode.com/..."
+                      value={editingStudent.linkLeetcode || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, linkLeetcode: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono text-amber-600"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">GitHub Profile Link</label>
+                    <input
+                      type="url"
+                      placeholder="https://github.com/..."
+                      value={editingStudent.linkGithub || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, linkGithub: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono text-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setEditingStudent(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
+                  className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
                 >
-                  Save Admin Changes
+                  Save Full Admin Changes
                 </button>
               </div>
             </form>
+
           </div>
         </div>
       )}
