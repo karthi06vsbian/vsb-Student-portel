@@ -647,8 +647,12 @@ export default function AdminDashboard({
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredStudents.map((st, idx) => (
                     <tr key={`${st.id || 'stu'}-${st.regNo || idx}`} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-blue-600">{st.regNo || st.rollNo || '-'}</td>
-                      <td className="py-3 px-4 font-extrabold text-slate-900 uppercase">{st.name}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-blue-600 cursor-pointer hover:underline" onClick={() => setViewStudent(st)}>
+                        {st.regNo || st.rollNo || '-'}
+                      </td>
+                      <td className="py-3 px-4 font-extrabold text-slate-900 uppercase cursor-pointer hover:text-blue-700 hover:underline" onClick={() => setViewStudent(st)}>
+                        {st.name}
+                      </td>
                       <td className="py-3 px-4 font-mono text-slate-600">{st.dob}</td>
                       <td className="py-3 px-4 font-bold text-slate-800">{st.dept}</td>
                       <td className="py-3 px-4 text-slate-600">{st.batch} • {st.section}</td>
@@ -665,7 +669,7 @@ export default function AdminDashboard({
                       <td className="py-3 px-4 text-right space-x-1.5">
                         <button
                           onClick={() => setViewStudent(st)}
-                          title="View All Student Data"
+                          title="View All Student Data Profile"
                           className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors inline-flex items-center cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -677,6 +681,7 @@ export default function AdminDashboard({
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
+
                         <button
                           onClick={() => handleAdminDeleteStudent(st.id, st.name, st.regNo)}
                           title="Delete Student Record"
@@ -1173,7 +1178,8 @@ export default function AdminDashboard({
 
       {/* ADMIN VIEW FULL STUDENT DATA MODAL */}
       {viewStudent && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+
           <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 text-xs max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">

@@ -604,9 +604,10 @@ export default function TeacherDashboard({
               <tbody className="divide-y divide-slate-100 text-xs">
                 {filteredStudents.map((st, idx) => (
                   <tr key={`${st.id || 'stu'}-${st.regNo || st.rollNo || idx}`} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-semibold text-slate-500">{st.admnNo || '-'}</td>
-                    <td className="py-3 px-4 font-mono font-bold text-blue-600">{st.rollNo || '-'}</td>
-                    <td className="py-3 px-4 font-extrabold text-slate-900 uppercase">{st.name}</td>
+                    <td className="py-3 px-4 font-mono font-semibold text-slate-500 cursor-pointer hover:underline" onClick={() => setViewStudent(st)}>{st.admnNo || '-'}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-blue-600 cursor-pointer hover:underline" onClick={() => setViewStudent(st)}>{st.rollNo || st.regNo || '-'}</td>
+                    <td className="py-3 px-4 font-extrabold text-slate-900 uppercase cursor-pointer hover:text-blue-700 hover:underline" onClick={() => setViewStudent(st)}>{st.name}</td>
+
                     <td className="py-3 px-4 font-mono text-slate-600">{st.dob}</td>
                     <td className="py-3 px-4">
                       <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">
