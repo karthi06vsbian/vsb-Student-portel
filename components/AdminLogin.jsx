@@ -32,14 +32,13 @@ export default function AdminLogin({ onLogin }) {
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-purple-100 p-6 sm:p-8">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl border border-purple-100">
-          <Shield className="w-6 h-6" />
-        </div>
+        <img src="/vsb-logo.png" alt="VSB Logo" className="w-12 h-12 object-contain drop-shadow" />
         <div>
           <h2 className="text-xl font-bold text-slate-800">System Admin Portal</h2>
           <p className="text-xs text-slate-500">Super admin management & audit log console</p>
         </div>
       </div>
+
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium flex items-center space-x-2">

@@ -36,14 +36,13 @@ export default function TeacherLogin({ onLogin, teachers }) {
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
-          <School className="w-6 h-6" />
-        </div>
+        <img src="/vsb-logo.png" alt="VSB Logo" className="w-12 h-12 object-contain drop-shadow" />
         <div>
           <h2 className="text-xl font-bold text-slate-800">Faculty / Teacher Portal</h2>
           <p className="text-xs text-slate-500">Manage batch & department student records</p>
         </div>
       </div>
+
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium flex items-center space-x-2">

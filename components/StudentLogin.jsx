@@ -99,14 +99,13 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
         <div className="w-full max-w-md mx-auto">
           <div className="glass-strong bg-white/95 text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
             <div className="flex items-center space-x-3.5 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <UserCheck className="w-6 h-6" />
-              </div>
+              <img src="/vsb-logo.png" alt="VSB Logo" className="w-12 h-12 object-contain drop-shadow" />
               <div>
                 <h2 className="text-xl font-bold text-slate-900 font-display">Student Login</h2>
                 <p className="text-xs text-slate-500 font-medium">Register number + Date of birth</p>
               </div>
             </div>
+
 
 
             {error && (

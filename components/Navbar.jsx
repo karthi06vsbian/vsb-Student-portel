@@ -10,14 +10,13 @@ export default function Navbar({ activeUser, onLogout, activeTab, onTabChange })
       <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
         {/* Brand Logo & Name (Exact match to screenshot) */}
         <a href="/" className="flex items-center space-x-3 text-white no-underline">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/25 ring-2 ring-blue-400/30">
-            VSB
-          </div>
+          <img src="/vsb-logo.png" alt="VSB Logo" className="w-11 h-11 object-contain filter drop-shadow-md" />
           <div>
             <div className="font-extrabold text-lg tracking-tight text-white font-display">VSB</div>
             <div className="text-xs text-slate-400 font-medium -mt-0.5">Engineering & Technical Campus</div>
           </div>
         </a>
+
 
         {/* Navigation Controls */}
         {activeUser ? (
