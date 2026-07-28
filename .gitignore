@@ -1,8 +1,11 @@
 node_modules/
+.next/
 dist/
-.env
-*.log
+.env*
 .DS_Store
+*.log
+.qodo/
 __pycache__/
 *.pyc
 *.sqlite3
+

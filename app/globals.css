@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+/* =========================================================
+   VSB Student Portal — Light & Emerald Green Design System
+   ========================================================= */
+
+:root {
+  /* Brand Palette */
+  --brand-primary: #2563EB;
+  --brand-primary-600: #1D4ED8;
+  --brand-primary-400: #60A5FA;
+  --brand-navy: #0F172A;
+
+  /* Emerald Green Accent (Matching Uploaded Screenshot) */
+  --accent: #10B981;
+  --accent-600: #059669;
+  --accent-400: #34D399;
+
+  /* Light Theme Neutrals */
+  --bg: #F0F4FA;
+  --bg-2: #E6EEF8;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-solid: #FFFFFF;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+
+  --text: #0F172A;
+  --text-muted: #47556B;
+  --text-subtle: #64748B;
+
+  /* Radii & Shadow */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 20px -4px rgba(15, 23, 42, 0.08), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 24px 60px -12px rgba(15, 23, 42, 0.12), 0 8px 24px -8px rgba(15, 23, 42, 0.06);
+
+  --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: #F0F4FA;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+/* Ambient Background Blobs (Soft Blue & Green gradients matching screenshot) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(37, 99, 235, 0.14), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 85% 25%, rgba(16, 185, 129, 0.18), transparent 60%),
+    radial-gradient(ellipse 70% 60% at 50% 95%, rgba(59, 130, 246, 0.12), transparent 60%),
+    linear-gradient(180deg, #F0F4FA 0%, #E6EEF8 100%);
+}
+
+/* Typography */
+h1, h2, h3, h4, .display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Glass Cards (Light White Glass) */
+.glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.glass-inner {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-md);
+}
+
+/* Lift Animation */
+.lift {
+  transition: transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s, background .2s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+  background: #2563EB;
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 10px 25px -8px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:hover {
+  background: #1D4ED8;
+}
+
+.btn-accent {
+  background: #10B981;
+  color: white;
+  border-color: transparent;
+}
+
+.btn-accent:hover {
+  background: #059669;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
