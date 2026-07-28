@@ -69,18 +69,16 @@ export default function Home() {
   };
 
   const syncFromCloud = async () => {
+    if (typeof window === 'undefined') return;
     try {
       const res = await fetch('/api/students');
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.students) && json.students.length > 0) {
           const storedStudents = getStorageData(KEYS.STUDENTS, []);
-          // Sync if cloud has records or if count differs
-          if (json.students.length !== storedStudents.length || JSON.stringify(json.students) !== JSON.stringify(storedStudents)) {
+          if (json.students.length !== storedStudents.length) {
             setStudents(json.students);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(KEYS.STUDENTS, JSON.stringify(json.students));
-            }
+            localStorage.setItem(KEYS.STUDENTS, JSON.stringify(json.students));
           }
         }
       }
@@ -88,6 +86,7 @@ export default function Home() {
       // Gracefully fallback to localStorage
     }
   };
+
 
   useEffect(() => {
     initializePortalStorage();

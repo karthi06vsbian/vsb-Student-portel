@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Server-side in-memory cache so all browsers & windows share the exact same student list instantly
 let cloudStudentsCache = null;
+
 
 export async function GET() {
   if (supabase) {
