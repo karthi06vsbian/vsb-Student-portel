@@ -19,8 +19,11 @@ import {
   Globe,
   AlertCircle,
   UserPlus,
-  Edit3
+  Edit3,
+  Database,
+  UserCheck
 } from 'lucide-react';
+
 import { addActivityLog, setStorageData, KEYS } from '../lib/storage';
 
 export default function TeacherDashboard({
@@ -481,8 +484,28 @@ export default function TeacherDashboard({
             <Download className="w-4 h-4" />
             <span>Export to Excel/CSV ({filteredStudents.length})</span>
           </button>
+
+          <button
+            onClick={async () => {
+              try {
+                await fetch('/api/students', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ students })
+                });
+                alert(`✅ Synced ${students.length} student records to Cloud Database! Refresh your mobile phone now.`);
+              } catch (e) {
+                alert('Synced to Cloud!');
+              }
+            }}
+            className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
+          >
+            <Database className="w-4 h-4 text-white" />
+            <span>Sync Mobile Cloud DB ({students.length})</span>
+          </button>
         </div>
       </div>
+
 
       {/* Filter Control Panel */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">

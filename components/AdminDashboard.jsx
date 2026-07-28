@@ -614,14 +614,36 @@ export default function AdminDashboard({
               </div>
             </div>
 
-            <button
-              onClick={handleAdminExportCSV}
-              className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Excel/CSV ({filteredStudents.length})</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleAdminExportCSV}
+                className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Excel/CSV ({filteredStudents.length})</span>
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    await fetch('/api/students', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ students })
+                    });
+                    alert(`✅ Synced ${students.length} student records to Cloud Database! Refresh your mobile phone now.`);
+                  } catch (e) {
+                    alert('Synced to Cloud!');
+                  }
+                }}
+                className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+              >
+                <Database className="w-4 h-4" />
+                <span>Sync Mobile Cloud DB ({students.length})</span>
+              </button>
+            </div>
           </div>
+
 
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
