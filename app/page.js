@@ -126,8 +126,9 @@ export default function Home() {
     syncFromCloud();
     setIsInitialized(true);
 
-    // Poll master cloud database every 1.5 seconds for instant multi-device & multi-window sync
-    const pollInterval = setInterval(syncFromCloud, 1500);
+    // Poll master cloud database every 800 milliseconds for instant sub-second multi-device sync
+    const pollInterval = setInterval(syncFromCloud, 800);
+
 
 
     // Listen for custom internal storage events & browser cross-tab storage events
