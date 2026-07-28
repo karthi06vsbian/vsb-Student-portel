@@ -68,10 +68,35 @@ export default function Home() {
     }
   };
 
+  const syncFromCloud = async () => {
+    try {
+      const res = await fetch('/api/students');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.students) && json.students.length > 0) {
+          const storedStudents = getStorageData(KEYS.STUDENTS, []);
+          // Sync if cloud has records or if count differs
+          if (json.students.length !== storedStudents.length || JSON.stringify(json.students) !== JSON.stringify(storedStudents)) {
+            setStudents(json.students);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(KEYS.STUDENTS, JSON.stringify(json.students));
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Gracefully fallback to localStorage
+    }
+  };
+
   useEffect(() => {
     initializePortalStorage();
     syncStateFromStorage();
+    syncFromCloud();
     setIsInitialized(true);
+
+    // Poll central cloud database every 3 seconds for live multi-window & multi-device sync
+    const pollInterval = setInterval(syncFromCloud, 3000);
 
     // Listen for custom internal storage events & browser cross-tab storage events
     const handleStorageChange = () => {
@@ -97,11 +122,13 @@ export default function Home() {
     }
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('vsb_storage_update', handleStorageChange);
       window.removeEventListener('storage', handleStorageChange);
       if (channel) channel.close();
     };
   }, []);
+
 
 
   const handleLogin = (userData) => {
