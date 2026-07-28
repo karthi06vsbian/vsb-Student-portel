@@ -1,62 +1,31 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { getMasterPortalData } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.STORAGE_SUPABASE_ANON_KEY || process.env.STORAGE_SUPABASE_SECRET_KEY || process.env.SUPABASE_ANON_KEY;
-
-
-  if (!url || !key) {
-    return NextResponse.json({
-      status: 'error',
-      connected: false,
-      message: 'Database environment variables are missing.'
-    }, { status: 400 });
-  }
-
-
-
-  if (!supabase) {
-    return NextResponse.json({
-      status: 'error',
-      connected: false,
-      message: 'Failed to initialize Supabase client.'
-    }, { status: 500 });
-  }
+  const pgUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.AIVEN_DATABASE_URL;
+  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL;
 
   try {
-    // Ping query to Supabase instance
-    const { error } = await supabase.from('_healthcheck').select('*').limit(1);
-
-    // If connection reaches Supabase server, even a table-missing response indicates database URL & ANON Key are valid!
-    const isConnected = !error || error.code === '42P01' || error.message?.includes('relation') || error.code === 'PGRST301';
-
-    if (isConnected) {
-      return NextResponse.json({
-        status: 'success',
-        connected: true,
-        message: 'Supabase database is ACTIVE and CONNECTED!',
-        supabaseUrl: `${url.substring(0, 18)}...`,
-        timestamp: new Date().toISOString()
-      });
-    }
+    const { source, timestamp, data } = await getMasterPortalData();
 
     return NextResponse.json({
-      status: 'warning',
-      connected: false,
-      message: 'Database reachable but returned error:',
-      error: error.message
-    }, { status: 500 });
-
+      status: 'success',
+      connected: true,
+      activeDatabaseSource: source,
+      postgresConnectionStringSet: !!pgUrl,
+      supabaseConfigured: !!supaUrl,
+      totalStudentsCount: data?.students?.length || 0,
+      timestamp: new Date(timestamp).toISOString()
+    });
   } catch (err) {
     return NextResponse.json({
       status: 'error',
       connected: false,
-      message: err.message
+      error: err.message
     }, { status: 500 });
   }
 }
