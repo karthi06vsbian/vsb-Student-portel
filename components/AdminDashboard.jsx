@@ -183,56 +183,69 @@ export default function AdminDashboard({
     alert(`Successfully created student login for ${createdStudent.name} in ${createdStudent.dept} (${createdStudent.batch} - ${createdStudent.section})!`);
   };
 
-  // Admin Export Students to CSV
+  // Admin Export Students to CSV with All 38 Database Fields
   const handleAdminExportCSV = () => {
     const headers = [
       'Admn_no', 'Roll_No', 'RegisterNo', 'Student Name', 'DOB', 'Gender', 'Dept', 'Batch', 'Section',
-      'Community', 'Caste', 'Blood Group', '10th Marks', '12th Marks', 'Cutoff', 'Parent Name',
-      'City/District', 'State', 'Email', 'Parent Mobile', 'Student Mobile',
+      'EMIS No', 'Community', 'Caste', 'Blood Group', 'Boarding Status',
+      '10th Marks', '12th Marks', 'Cutoff', 'CGPA', 'Attendance %',
+      'Parent Name', 'Relation', 'Parent Mobile', 'Student Mobile', 'Email', 'Aadhaar No',
+      'Door No / Street', 'Town / Taluk', 'City / District', 'State', 'Pincode',
       '10th Marksheet Link', '12th Marksheet Link', 'Community Certificate Link', 'Aadhaar Card Link',
-      'LinkedIn Link', 'LeetCode Link', 'GitHub Link'
+      'LinkedIn Link', 'LeetCode Link', 'GitHub Link', 'Status'
     ];
 
     const rows = filteredStudents.map((s) => [
       s.admnNo || '',
       s.rollNo || '',
       s.regNo || '',
-      `"${s.name || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
       s.dob || '',
       s.gender || '',
       s.dept || '',
       s.batch || '',
       s.section || '',
+      s.emisNo || '',
       s.community || '',
-      `"${s.caste || ''}"`,
+      `"${(s.caste || '').replace(/"/g, '""')}"`,
       s.bloodGroup || '',
+      s.boardingStatus || '',
       s.marks10th || '',
       s.marks12th || '',
       s.cutoffHsc || '',
-      `"${s.parentName || ''}"`,
-      `"${s.cityDistrict || ''}"`,
-      s.state || '',
-      s.email || '',
+      s.cgpa || '',
+      s.attendance || '',
+      `"${(s.parentName || '').replace(/"/g, '""')}"`,
+      s.relation || '',
       s.parentMobile || '',
       s.studentMobile || '',
+      s.email || '',
+      s.aadhaar || '',
+      `"${(s.doorNoStreet || '').replace(/"/g, '""')}"`,
+      `"${(s.townTaluk || '').replace(/"/g, '""')}"`,
+      `"${(s.cityDistrict || '').replace(/"/g, '""')}"`,
+      s.state || '',
+      s.pincode || '',
       s.doc10th || '',
       s.doc12th || '',
       s.docCommunity || '',
       s.docAadhaar || '',
       s.linkLinkedin || '',
       s.linkLeetcode || '',
-      s.linkGithub || ''
+      s.linkGithub || '',
+      s.status || 'Active'
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `vsb_admin_students_export.csv`);
+    link.setAttribute('download', `vsb_admin_students_master_export.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
+
 
   // Save Student Record
   const handleAdminSaveStudent = (e) => {
