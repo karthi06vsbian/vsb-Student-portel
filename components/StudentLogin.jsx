@@ -25,28 +25,25 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
         (s) => (s.regNo && s.regNo.toUpperCase() === typedReg) || (s.rollNo && s.rollNo === typedReg) || (s.admnNo && s.admnNo === typedReg)
       );
 
-      if (student) {
-        onLogin({ ...student, role: 'STUDENT' });
-      } else {
-        // Fallback login with typed credentials
-        onLogin({
-          id: `STU-${typedReg}`,
-          regNo: typedReg,
-          rollNo: typedReg,
-          name: 'STUDENT USER',
-          dob: dob,
-          dept: 'CSE',
-          batch: '2024-2028',
-          section: 'Sec B',
-          status: 'Active',
-          cgpa: '8.80',
-          attendance: '94.5',
-          role: 'STUDENT'
-        });
+      if (!student) {
+        setError('Access Denied: Register Number not found in database. Student account must be created by Admin/Faculty first.');
+        setLoading(false);
+        return;
       }
+
+      // Verify DOB matches database record
+      if (student.dob && student.dob.trim() !== dob.trim()) {
+        setError('Access Denied: Incorrect Date of Birth entered. Please verify your DOB.');
+        setLoading(false);
+        return;
+      }
+
+      // Successful verified login
+      onLogin({ ...student, role: 'STUDENT' });
       setLoading(false);
     }, 300);
   };
+
 
   return (
     <div className="w-full max-w-6xl mx-auto py-4 px-2">

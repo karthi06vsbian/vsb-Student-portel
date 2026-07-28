@@ -5,14 +5,15 @@ export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.STORAGE_SUPABASE_URL || process.env.SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.STORAGE_SUPABASE_ANON_KEY || process.env.STORAGE_SUPABASE_SECRET_KEY || process.env.SUPABASE_ANON_KEY;
 
+
   if (!url || !key) {
     return NextResponse.json({
       status: 'error',
       connected: false,
-      message: 'Database environment variables are missing.',
-      hint: 'Set STORAGE_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL in Vercel Environment Variables.'
+      message: 'Database environment variables are missing.'
     }, { status: 400 });
   }
+
 
 
   if (!supabase) {
