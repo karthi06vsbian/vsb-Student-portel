@@ -68,26 +68,57 @@ export default function Home() {
     }
   };
 
+  const lastSyncTimeRef = React.useRef(0);
+
   const syncFromCloud = async () => {
     if (typeof window === 'undefined') return;
     try {
-      const res = await fetch('/api/students');
+      const res = await fetch('/api/portal-data');
       if (res.ok) {
         const json = await res.json();
-        if (json.success && Array.isArray(json.students) && json.students.length > 0) {
-          const storedStudents = getStorageData(KEYS.STUDENTS, []);
-          if (json.students.length >= storedStudents.length || storedStudents.length === 0) {
-            setStudents(json.students);
-            localStorage.setItem(KEYS.STUDENTS, JSON.stringify(json.students));
+        if (json.success && json.data) {
+          const {
+            students: cloudStudents,
+            teachers: cloudTeachers,
+            departments: cloudDepts,
+            batches: cloudBatches,
+            sections: cloudSecs,
+            activityLogs: cloudLogs
+          } = json.data;
+          const serverTime = json.timestamp || 0;
+
+          if (serverTime > lastSyncTimeRef.current) {
+            lastSyncTimeRef.current = serverTime;
+
+            if (Array.isArray(cloudStudents) && cloudStudents.length > 0) {
+              setStudents(cloudStudents);
+              localStorage.setItem(KEYS.STUDENTS, JSON.stringify(cloudStudents));
+            }
+            if (Array.isArray(cloudTeachers) && cloudTeachers.length > 0) {
+              setTeachers(cloudTeachers);
+              localStorage.setItem(KEYS.TEACHERS, JSON.stringify(cloudTeachers));
+            }
+            if (Array.isArray(cloudDepts) && cloudDepts.length > 0) {
+              setDepartments(cloudDepts);
+              localStorage.setItem(KEYS.DEPARTMENTS, JSON.stringify(cloudDepts));
+            }
+            if (Array.isArray(cloudBatches) && cloudBatches.length > 0) {
+              setBatches(cloudBatches);
+              localStorage.setItem(KEYS.BATCHES, JSON.stringify(cloudBatches));
+            }
+            if (Array.isArray(cloudSecs) && cloudSecs.length > 0) {
+              setSections(cloudSecs);
+              localStorage.setItem(KEYS.SECTIONS, JSON.stringify(cloudSecs));
+            }
+            if (Array.isArray(cloudLogs) && cloudLogs.length > 0) {
+              setActivityLogs(cloudLogs);
+              localStorage.setItem(KEYS.LOGS, JSON.stringify(cloudLogs));
+            }
           }
         }
       }
-    } catch (e) {
-      // Gracefully fallback to localStorage
-    }
+    } catch (e) {}
   };
-
-
 
   useEffect(() => {
     initializePortalStorage();
@@ -95,8 +126,9 @@ export default function Home() {
     syncFromCloud();
     setIsInitialized(true);
 
-    // Poll central cloud database every 3 seconds for live multi-window & multi-device sync
-    const pollInterval = setInterval(syncFromCloud, 3000);
+    // Poll master cloud database every 1.5 seconds for instant multi-device & multi-window sync
+    const pollInterval = setInterval(syncFromCloud, 1500);
+
 
     // Listen for custom internal storage events & browser cross-tab storage events
     const handleStorageChange = () => {
