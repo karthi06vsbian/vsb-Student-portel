@@ -51,49 +51,50 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
   return (
     <div className="w-full max-w-6xl mx-auto py-4 px-2">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-        {/* Left Hero Section (Exact Match to Screenshot) */}
+        {/* Left Hero Section */}
         <div className="space-y-6 text-left">
-          <div className="inline-flex items-center space-x-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3.5 py-1.5 rounded-full text-xs font-bold">
-            <UserCheck className="w-4 h-4 text-blue-400" />
+          <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 border border-blue-200 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm">
+            <UserCheck className="w-4 h-4 text-blue-700" />
             <span>Student Portal</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight font-display">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight font-display">
             Welcome back,<br />
-            <span className="bg-gradient-to-r from-blue-500 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="text-blue-700">
               VSB student.
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 max-w-lg leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 max-w-lg leading-relaxed font-medium">
             Log in with your register number and DOB. Email authentication is enabled for high-security academic batches.
           </p>
 
-          {/* Glass Security Card */}
-          <div className="glass p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md space-y-3">
+          {/* Security Card */}
+          <div className="bg-white/80 p-5 rounded-2xl border border-slate-200/90 backdrop-blur-md shadow-md space-y-3">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-                <Shield className="w-4 h-4 text-blue-400" />
+              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center border border-blue-200">
+                <Shield className="w-4 h-4 text-blue-700" />
               </div>
-              <span className="text-sm font-bold text-white">Security & Batch Authentication</span>
+              <span className="text-sm font-bold text-slate-900">Security & Batch Authentication</span>
             </div>
 
-            <ul className="space-y-2 text-xs text-slate-300 pl-1">
+            <ul className="space-y-2 text-xs text-slate-700 font-medium pl-1">
               <li className="flex items-center space-x-2">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Register Number + DOB verification.</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Free Email OTP code for configured batches.</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Admin-controlled batch authentication rules.</span>
               </li>
             </ul>
           </div>
         </div>
+
 
         {/* Right Glass Student Login Form (Exact Match to Screenshot) */}
         <div className="w-full max-w-md mx-auto">

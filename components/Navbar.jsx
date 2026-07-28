@@ -8,14 +8,15 @@ export default function Navbar({ activeUser, onLogout, activeTab, onTabChange })
   return (
     <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none py-4 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
-        {/* Brand Logo & Name (Exact match to screenshot) */}
-        <a href="/" className="flex items-center space-x-3 text-white no-underline">
+        {/* Brand Logo & Name */}
+        <a href="/" className="flex items-center space-x-3 text-slate-900 no-underline">
           <img src="/vsb-logo.png" alt="VSB Logo" className="w-11 h-11 object-contain filter drop-shadow-md" />
           <div>
-            <div className="font-extrabold text-lg tracking-tight text-white font-display">VSB</div>
-            <div className="text-xs text-slate-400 font-medium -mt-0.5">Engineering & Technical Campus</div>
+            <div className="font-extrabold text-lg tracking-tight text-slate-900 font-display">VSB</div>
+            <div className="text-xs text-slate-600 font-medium -mt-0.5">Engineering & Technical Campus</div>
           </div>
         </a>
+
 
 
         {/* Navigation Controls */}
