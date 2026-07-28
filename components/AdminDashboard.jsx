@@ -61,6 +61,8 @@ export default function AdminDashboard({
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [studentSearch, setStudentSearch] = useState('');
   const [editingStudent, setEditingStudent] = useState(null);
+  const [viewStudent, setViewStudent] = useState(null);
+
 
   // New Department Form State
   const [newDept, setNewDept] = useState({ code: '', name: '' });
@@ -374,6 +376,41 @@ export default function AdminDashboard({
     setStorageData(KEYS.TEACHERS, updatedTeachers);
   };
 
+  // Change Teacher Password
+  const handleAdminChangeTeacherPassword = (teacherId, teacherName) => {
+    const currentT = teachers.find((t) => t.id === teacherId);
+    const newPass = prompt(`Enter new password for ${teacherName}:`, currentT?.password || 'teacherpassword');
+    if (newPass && newPass.trim()) {
+      const updatedTeachers = teachers.map((t) => (t.id === teacherId ? { ...t, password: newPass.trim() } : t));
+      onUpdateTeachers(updatedTeachers);
+      setStorageData(KEYS.TEACHERS, updatedTeachers);
+      addActivityLog(
+        admin.name || 'Super Admin',
+        'ADMIN',
+        'UPDATE_TEACHER_PASSWORD',
+        `Administrator updated password for faculty ${teacherName}`
+      );
+      alert(`Password for ${teacherName} updated successfully!`);
+    }
+  };
+
+  // Delete Teacher
+  const handleAdminDeleteTeacher = (teacherId, teacherName) => {
+    if (confirm(`ADMIN CONFIRMATION: Are you sure you want to delete faculty account for ${teacherName}?`)) {
+      const updatedTeachers = teachers.filter((t) => t.id !== teacherId);
+      onUpdateTeachers(updatedTeachers);
+      setStorageData(KEYS.TEACHERS, updatedTeachers);
+      addActivityLog(
+        admin.name || 'Super Admin',
+        'ADMIN',
+        'DELETE_TEACHER_ACCOUNT',
+        `Administrator deleted faculty account for ${teacherName}`
+      );
+      alert(`Faculty account for ${teacherName} deleted.`);
+    }
+  };
+
+
   // Filtered Logs
   const filteredLogs = activityLogs.filter((log) => {
     const matchRole = logRoleFilter === 'ALL' || log.role === logRoleFilter;
@@ -614,8 +651,15 @@ export default function AdminDashboard({
                       <td className="py-3 px-4 font-mono text-slate-600">{st.studentMobile || st.parentMobile || '-'}</td>
                       <td className="py-3 px-4 text-right space-x-1.5">
                         <button
+                          onClick={() => setViewStudent(st)}
+                          title="View All Student Data"
+                          className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors inline-flex items-center cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => setEditingStudent(st)}
-                          title="View & Edit Student Record"
+                          title="Edit Student Record"
                           className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors inline-flex items-center cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -643,7 +687,7 @@ export default function AdminDashboard({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900">Faculty Logins ({teachers.length})</h2>
-              <p className="text-xs text-slate-500">Create new teacher accounts and manage active access permissions.</p>
+              <p className="text-xs text-slate-500">Create new teacher accounts, change passwords, or remove faculty access.</p>
             </div>
             <button
               onClick={() => setShowAddTeacherModal(true)}
@@ -662,28 +706,52 @@ export default function AdminDashboard({
                     <h3 className="font-bold text-slate-900">{t.name}</h3>
                     <p className="text-xs text-blue-600 font-semibold mt-0.5">{t.email}</p>
                   </div>
-                  <button
-                    onClick={() => handleToggleTeacherStatus(t.id, t.status, t.name)}
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border cursor-pointer ${
-                      t.status === 'Active'
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                        : 'bg-red-100 text-red-800 border-red-200'
-                    }`}
-                  >
-                    {t.status}
-                  </button>
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      onClick={() => handleToggleTeacherStatus(t.id, t.status, t.name)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border cursor-pointer ${
+                        t.status === 'Active'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : 'bg-red-100 text-red-800 border-red-200'
+                      }`}
+                    >
+                      {t.status}
+                    </button>
+                    <button
+                      onClick={() => handleAdminDeleteTeacher(t.id, t.name)}
+                      title="Delete Faculty Account"
+                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Assigned Dept</p>
-                  <p className="font-bold text-slate-800">{t.dept}</p>
-                  <p className="text-[10px] text-slate-500 pt-1 font-mono">Password: {t.password || 'teacherpassword'}</p>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Assigned Dept</p>
+                    <p className="font-bold text-slate-800">{t.dept}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase">Password</p>
+                      <p className="font-mono text-slate-700">{t.password || 'teacherpassword'}</p>
+                    </div>
+                    <button
+                      onClick={() => handleAdminChangeTeacherPassword(t.id, t.name)}
+                      className="flex items-center space-x-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-purple-200 transition-all cursor-pointer"
+                    >
+                      <Key className="w-3 h-3" />
+                      <span>Change</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
 
       {/* MODULE 3: ADD / EDIT DEPARTMENTS, BATCHES & MATCHING SECTIONS */}
       {activeTab === 'MANAGE_STRUCTURE' && (
@@ -1090,14 +1158,162 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* ADMIN EDIT STUDENT RECORD MODAL */}
+      {/* ADMIN VIEW FULL STUDENT DATA MODAL */}
+      {viewStudent && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 text-xs max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-base border border-blue-200">
+                  {viewStudent.name?.charAt(0) || 'S'}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-blue-100 text-blue-800 text-[10px] font-extrabold px-2 py-0.5 rounded border border-blue-200">
+                      MASTER STUDENT PROFILE
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-500 font-bold">Reg: {viewStudent.regNo || viewStudent.rollNo || 'N/A'}</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900 uppercase mt-0.5">{viewStudent.name}</h3>
+                </div>
+              </div>
+              <button onClick={() => setViewStudent(null)} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Academic & Batch Overview Banner */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Department</span>
+                <p className="font-extrabold text-slate-900 text-sm">{viewStudent.dept || '-'}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Batch & Section</span>
+                <p className="font-extrabold text-slate-900 text-sm">{viewStudent.batch || '-'} • {viewStudent.section || '-'}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">HSC Cutoff</span>
+                <p className="font-extrabold text-blue-600 text-sm">{viewStudent.cutoffHsc || '-'}</p>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">CGPA / Attendance</span>
+                <p className="font-extrabold text-emerald-600 text-sm">{viewStudent.cgpa || '-'} / {viewStudent.attendance ? `${viewStudent.attendance}%` : '-'}</p>
+              </div>
+            </div>
+
+            {/* Detailed Parameters Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Section A: Academic Marks & IDs */}
+              <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-100 pb-2">
+                  <GraduationCap className="w-4 h-4 text-blue-600" />
+                  <span>Academic Marks & Registration</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-slate-500 text-[10px] font-bold">Register Number:</span> <p className="font-mono font-bold text-slate-900">{viewStudent.regNo || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Roll Number:</span> <p className="font-mono font-bold text-slate-900">{viewStudent.rollNo || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Admission Number:</span> <p className="font-mono text-slate-900">{viewStudent.admnNo || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">10th Marks:</span> <p className="font-bold text-slate-900">{viewStudent.marks10th || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">12th Marks:</span> <p className="font-bold text-slate-900">{viewStudent.marks12th || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">EMIS Number:</span> <p className="font-mono text-slate-900">{viewStudent.emisNo || '-'}</p></div>
+                </div>
+              </div>
+
+              {/* Section B: Personal & Community */}
+              <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-100 pb-2">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <span>Personal & Category Details</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-slate-500 text-[10px] font-bold">Date of Birth:</span> <p className="font-mono font-bold text-slate-900">{viewStudent.dob || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Gender:</span> <p className="font-bold text-slate-900">{viewStudent.gender === 'M' ? 'Male' : viewStudent.gender === 'F' ? 'Female' : '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Community:</span> <p className="font-bold text-slate-900">{viewStudent.community || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Caste:</span> <p className="font-bold text-slate-900">{viewStudent.caste || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Blood Group:</span> <p className="font-bold text-slate-900">{viewStudent.bloodGroup || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Boarding Status:</span> <p className="font-bold text-slate-900">{viewStudent.boardingStatus || '-'}</p></div>
+                </div>
+              </div>
+
+              {/* Section C: Contact & Parent Info */}
+              <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-100 pb-2">
+                  <UserCheck className="w-4 h-4 text-purple-600" />
+                  <span>Parent & Contact Information</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-slate-500 text-[10px] font-bold">Parent Name:</span> <p className="font-bold text-slate-900">{viewStudent.parentName || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Parent Mobile:</span> <p className="font-mono font-bold text-slate-900">{viewStudent.parentMobile || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Student Mobile:</span> <p className="font-mono font-bold text-slate-900">{viewStudent.studentMobile || '-'}</p></div>
+                  <div><span className="text-slate-500 text-[10px] font-bold">Email ID:</span> <p className="font-mono text-blue-600">{viewStudent.email || '-'}</p></div>
+                </div>
+                <div className="pt-2 border-t border-slate-100">
+                  <span className="text-slate-500 text-[10px] font-bold">Residential Address:</span>
+                  <p className="font-medium text-slate-800">
+                    {[viewStudent.doorNoStreet, viewStudent.townTaluk, viewStudent.cityDistrict, viewStudent.state, viewStudent.pincode].filter(Boolean).join(', ') || '-'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Section D: Documents & Portfolios */}
+              <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-100 pb-2">
+                  <FileSpreadsheet className="w-4 h-4 text-amber-600" />
+                  <span>Drive Certificates & Coding Links</span>
+                </h4>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">10th Marksheet:</span>
+                    {viewStudent.doc10th ? <a href={viewStudent.doc10th} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline">View Drive Link</a> : <span className="text-slate-400">Not Uploaded</span>}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">12th Marksheet:</span>
+                    {viewStudent.doc12th ? <a href={viewStudent.doc12th} target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline">View Drive Link</a> : <span className="text-slate-400">Not Uploaded</span>}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Community Certificate:</span>
+                    {viewStudent.docCommunity ? <a href={viewStudent.docCommunity} target="_blank" rel="noreferrer" className="text-emerald-600 font-bold hover:underline">View Drive Link</a> : <span className="text-slate-400">Not Uploaded</span>}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Aadhaar Card:</span>
+                    {viewStudent.docAadhaar ? <a href={viewStudent.docAadhaar} target="_blank" rel="noreferrer" className="text-purple-600 font-bold hover:underline">View Drive Link</a> : <span className="text-slate-400">Not Uploaded</span>}
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                    <span className="text-slate-500 font-medium">Coding Profiles:</span>
+                    <div className="flex items-center space-x-2">
+                      {viewStudent.linkLinkedin && <a href={viewStudent.linkLinkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold">LinkedIn</a>}
+                      {viewStudent.linkLeetcode && <a href={viewStudent.linkLeetcode} target="_blank" rel="noreferrer" className="text-amber-600 font-bold">LeetCode</a>}
+                      {viewStudent.linkGithub && <a href={viewStudent.linkGithub} target="_blank" rel="noreferrer" className="text-slate-800 font-bold">GitHub</a>}
+                      {!viewStudent.linkLinkedin && !viewStudent.linkLeetcode && !viewStudent.linkGithub && <span className="text-slate-400">None</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="flex justify-end pt-3 border-t border-slate-200">
+              <button
+                onClick={() => setViewStudent(null)}
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-sm"
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN EDIT STUDENT RECORD MODAL (COMPREHENSIVE) */}
       {editingStudent && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div>
                 <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded border border-purple-200">
-                  Super Admin Profile Edit Mode
+                  Super Admin Full Record Edit Mode
                 </span>
                 <h3 className="text-lg font-extrabold text-slate-900 mt-1 uppercase">{editingStudent.name}</h3>
               </div>
@@ -1107,34 +1323,148 @@ export default function AdminDashboard({
             </div>
 
             <form onSubmit={handleAdminSaveStudent} className="space-y-4">
+              {/* Section 1: Basic Identifiers */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <h4 className="font-bold text-slate-800 text-xs uppercase">Basic Identifiers</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingStudent.name || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Register Number (Login ID)</label>
+                    <input
+                      type="text"
+                      value={editingStudent.regNo || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, regNo: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Date of Birth (Login DOB)</label>
+                    <input
+                      type="date"
+                      value={editingStudent.dob || ''}
+                      onChange={(e) => setEditingStudent({ ...editingStudent, dob: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Department, Batch & Section */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Full Name</label>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Department</label>
+                  <select
+                    value={editingStudent.dept || 'CSE'}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, dept: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  >
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.code}>{d.code} - {d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Academic Batch</label>
+                  <select
+                    value={editingStudent.batch || '2024-2028'}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, batch: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  >
+                    {batches.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Section</label>
+                  <select
+                    value={editingStudent.section || 'Sec A'}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, section: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  >
+                    {sections.map((sec) => (
+                      <option key={sec} value={sec}>{sec}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Section 3: Academic Performance */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">10th Marks</label>
                   <input
                     type="text"
-                    value={editingStudent.name}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold uppercase"
+                    value={editingStudent.marks10th || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, marks10th: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Date of Birth (Login DOB)</label>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">12th Marks</label>
                   <input
-                    type="date"
-                    value={editingStudent.dob}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, dob: e.target.value })}
+                    type="text"
+                    value={editingStudent.marks12th || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, marks12th: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">HSC Cutoff</label>
+                  <input
+                    type="text"
+                    value={editingStudent.cutoffHsc || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, cutoffHsc: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">CGPA</label>
+                  <input
+                    type="text"
+                    value={editingStudent.cgpa || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, cgpa: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-emerald-600"
+                  />
+                </div>
+              </div>
+
+              {/* Section 4: Contact & Parent Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Name</label>
+                  <input
+                    type="text"
+                    value={editingStudent.parentName || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, parentName: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Parent Mobile</label>
+                  <input
+                    type="text"
+                    value={editingStudent.parentMobile || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, parentMobile: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Register Number (Login ID)</label>
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Student Mobile</label>
                   <input
                     type="text"
-                    value={editingStudent.regNo}
-                    onChange={(e) => setEditingStudent({ ...editingStudent, regNo: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
+                    value={editingStudent.studentMobile || ''}
+                    onChange={(e) => setEditingStudent({ ...editingStudent, studentMobile: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
                   />
                 </div>
               </div>
@@ -1149,7 +1479,7 @@ export default function AdminDashboard({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-md"
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
                 >
                   Save Admin Changes
                 </button>
@@ -1158,6 +1488,7 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
 
       {/* CREATE TEACHER ACCOUNT MODAL */}
       {showAddTeacherModal && (

@@ -33,9 +33,10 @@ export default function TeacherDashboard({
 }) {
   // Filters
   const [selectedBatch, setSelectedBatch] = useState('ALL');
-  const [selectedDept, setSelectedDept] = useState(teacher.dept || 'ALL');
+  const [selectedDept, setSelectedDept] = useState('ALL');
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
