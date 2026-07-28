@@ -135,7 +135,9 @@ export default function Home() {
     setActiveUser(userData);
     setStorageData(KEYS.SESSION, userData);
     syncStateFromStorage();
+    syncFromCloud();
   };
+
 
   const handleLogout = () => {
     setActiveUser(null);
