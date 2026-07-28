@@ -95,23 +95,7 @@ export default function AdminLogin({ onLogin }) {
           <ArrowRight className="w-4 h-4" />
         </button>
       </form>
-
-      {/* Demo Credentials */}
-      <div className="mt-6 pt-4 border-t border-slate-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1 text-xs text-slate-500 font-semibold">
-            <Info className="w-3.5 h-3.5 text-purple-600" />
-            <span>Admin Demo Account:</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleDemoFill}
-            className="text-[11px] bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold px-3 py-1 rounded-lg border border-purple-200 transition-colors"
-          >
-            Auto-fill Admin (admin/adminpassword)
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
+

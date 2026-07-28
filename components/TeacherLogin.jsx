@@ -99,30 +99,7 @@ export default function TeacherLogin({ onLogin, teachers }) {
           <ArrowRight className="w-4 h-4" />
         </button>
       </form>
-
-      {/* Demo Credentials */}
-      <div className="mt-6 pt-4 border-t border-slate-100">
-        <div className="flex items-center space-x-1 text-xs text-slate-500 font-semibold mb-2">
-          <Info className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Demo Faculty Accounts (Click to fill):</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => handleDemoFill('vijayakumar.cse@vsb.ac.in', 'teacherpassword')}
-            className="text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-medium px-2.5 py-1 rounded-lg border border-slate-200 transition-colors"
-          >
-            Dr. Vijayakumar (CSE)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDemoFill('meenakshi.ece@vsb.ac.in', 'teacherpassword')}
-            className="text-[11px] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-medium px-2.5 py-1 rounded-lg border border-slate-200 transition-colors"
-          >
-            Prof. Meenakshi (ECE)
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
+

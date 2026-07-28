@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { UserCheck, Shield, Check, Calendar, Hash, ArrowRight } from 'lucide-react';
 
 export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
-  const [regNum, setRegNum] = useState('2023CS042');
-  const [dob, setDob] = useState('2005-04-18');
+  const [regNum, setRegNum] = useState('');
+  const [dob, setDob] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,12 +46,6 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
       }
       setLoading(false);
     }, 300);
-  };
-
-  const handleQuickFill = (r, d) => {
-    setRegNum(r);
-    setDob(d);
-    setError('');
   };
 
   return (
@@ -114,26 +108,6 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
               </div>
             </div>
 
-            {/* Quick Demo Logins Dashed Box */}
-            <div className="p-3.5 mb-5 rounded-2xl border border-dashed border-blue-400/80 bg-blue-50/60 space-y-2">
-              <div className="text-xs font-bold text-blue-700">Quick Demo Student Logins:</div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('2023CS042', '2005-04-18')}
-                  className="text-xs bg-white hover:bg-blue-100 text-slate-800 font-medium px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition-all"
-                >
-                  ⚡ Demo Student (2023CS042)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('24104064', '2005-01-01')}
-                  className="text-xs bg-white hover:bg-blue-100 text-slate-800 font-medium px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition-all"
-                >
-                  ⚡ Student (24104064)
-                </button>
-              </div>
-            </div>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-semibold text-center">
