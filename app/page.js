@@ -81,11 +81,28 @@ export default function Home() {
     window.addEventListener('vsb_storage_update', handleStorageChange);
     window.addEventListener('storage', handleStorageChange);
 
+    // Setup BroadcastChannel for 100% reliable cross-tab live synchronization
+    let channel = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel('vsb_portal_channel');
+        channel.onmessage = (event) => {
+          if (event.data && event.data.type === 'vsb_storage_update') {
+            syncStateFromStorage();
+          }
+        };
+      } catch (e) {
+        console.warn('BroadcastChannel error:', e);
+      }
+    }
+
     return () => {
       window.removeEventListener('vsb_storage_update', handleStorageChange);
       window.removeEventListener('storage', handleStorageChange);
+      if (channel) channel.close();
     };
   }, []);
+
 
   const handleLogin = (userData) => {
     setActiveUser(userData);
