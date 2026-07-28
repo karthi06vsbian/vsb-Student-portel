@@ -76,7 +76,7 @@ export default function Home() {
         const json = await res.json();
         if (json.success && Array.isArray(json.students) && json.students.length > 0) {
           const storedStudents = getStorageData(KEYS.STUDENTS, []);
-          if (json.students.length !== storedStudents.length) {
+          if (json.students.length >= storedStudents.length || storedStudents.length === 0) {
             setStudents(json.students);
             localStorage.setItem(KEYS.STUDENTS, JSON.stringify(json.students));
           }
@@ -86,6 +86,7 @@ export default function Home() {
       // Gracefully fallback to localStorage
     }
   };
+
 
 
   useEffect(() => {
