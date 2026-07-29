@@ -66,6 +66,45 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
             Log in with your register number and DOB. Email authentication is enabled for high-security academic batches.
           </p>
 
+          {/* Welcome Student Graphic Card */}
+          <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 bg-white/90 shadow-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
+            {/* Student Boy Portrait */}
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden shadow-md shrink-0 border-2 border-blue-600/30">
+              <img
+                src="/student-welcome.jpg"
+                alt="VSB College Student Karthikeyan A"
+                className="w-full h-full object-cover"
+              />
+              <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow">
+                VERIFIED ID
+              </span>
+            </div>
+
+            {/* Student ID Card Badging Info */}
+            <div className="flex-1 space-y-2 text-left">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                <span className="text-[11px] font-extrabold text-blue-700 uppercase tracking-widest">
+                  VSB STUDENT IDENTIFICATION
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 leading-tight">KARTHIKEYAN A</h3>
+                <p className="text-xs font-semibold text-slate-500">Dept of Computer Science & Engg (CSE)</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg">
+                  🎓 Batch: 2024 - 2028
+                </span>
+                <span className="bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-1 rounded-lg">
+                  👔 Black Shirt & White Pant
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Security Card */}
           <div className="bg-white/80 p-5 rounded-2xl border border-slate-200/90 backdrop-blur-md shadow-md space-y-3">
             <div className="flex items-center space-x-3">
@@ -91,6 +130,7 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
             </ul>
           </div>
         </div>
+
 
 
         {/* Right Glass Student Login Form (Exact Match to Screenshot) */}
