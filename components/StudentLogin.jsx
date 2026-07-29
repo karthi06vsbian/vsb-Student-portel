@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserCheck, Shield, Check, Calendar, Hash, ArrowRight } from 'lucide-react';
+import { UserCheck, Shield, Check, AlertCircle } from 'lucide-react';
+import MascotAnimationModal from './MascotAnimationModal';
 
 export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
   const [regNum, setRegNum] = useState('');
@@ -9,13 +10,29 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Mascot Modal States
+  const [mascotModal, setMascotModal] = useState({
+    isOpen: false,
+    type: 'success', // 'success' | 'error'
+    studentName: 'Student',
+    message: '',
+  });
+  const [pendingUser, setPendingUser] = useState(null);
+
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     setError('');
 
     const typedReg = regNum.trim().toUpperCase();
     if (!typedReg || !dob) {
-      setError('Enter register number and date of birth');
+      const errMsg = 'Enter register number and date of birth';
+      setError(errMsg);
+      setMascotModal({
+        isOpen: true,
+        type: 'error',
+        studentName: '',
+        message: errMsg,
+      });
       return;
     }
 
@@ -26,27 +43,64 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
       );
 
       if (!student) {
-        setError('Access Denied: Register Number not found in database. Student account must be created by Admin/Faculty first.');
+        const errMsg = 'Access Denied: Register Number not found in database. Student account must be created by Admin/Faculty first.';
+        setError(errMsg);
         setLoading(false);
+        setMascotModal({
+          isOpen: true,
+          type: 'error',
+          studentName: '',
+          message: errMsg,
+        });
         return;
       }
 
       // Verify DOB matches database record
       if (student.dob && student.dob.trim() !== dob.trim()) {
-        setError('Access Denied: Incorrect Date of Birth entered. Please verify your DOB.');
+        const errMsg = 'Access Denied: Incorrect Date of Birth entered. Please verify your DOB.';
+        setError(errMsg);
         setLoading(false);
+        setMascotModal({
+          isOpen: true,
+          type: 'error',
+          studentName: '',
+          message: errMsg,
+        });
         return;
       }
 
-      // Successful verified login
-      onLogin({ ...student, role: 'STUDENT' });
+      // Successful verified login -> Show Little Bear Thumbs Up animation!
+      const user = { ...student, role: 'STUDENT' };
+      setPendingUser(user);
       setLoading(false);
-    }, 300);
+      setMascotModal({
+        isOpen: true,
+        type: 'success',
+        studentName: student.name || 'Student',
+        message: 'Verified successfully! Redirecting...',
+      });
+    }, 400);
   };
 
+  const handleMascotComplete = () => {
+    setMascotModal((prev) => ({ ...prev, isOpen: false }));
+    if (pendingUser) {
+      onLogin(pendingUser);
+    }
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto py-4 px-2">
+      {/* MASCOT ANIMATION OVERLAY MODAL */}
+      <MascotAnimationModal
+        isOpen={mascotModal.isOpen}
+        type={mascotModal.type}
+        studentName={mascotModal.studentName}
+        message={mascotModal.message}
+        onClose={() => setMascotModal((prev) => ({ ...prev, isOpen: false }))}
+        onComplete={handleMascotComplete}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         {/* Left Hero Section */}
         <div className="space-y-6 text-left">
@@ -65,8 +119,6 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
           <p className="text-sm sm:text-base text-slate-600 max-w-lg leading-relaxed font-medium">
             Log in with your register number and DOB. Email authentication is enabled for high-security academic batches.
           </p>
-
-
 
           {/* Security Card */}
           <div className="bg-white/80 p-5 rounded-2xl border border-slate-200/90 backdrop-blur-md shadow-md space-y-3">
@@ -94,9 +146,7 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
           </div>
         </div>
 
-
-
-        {/* Right Glass Student Login Form (Exact Match to Screenshot) */}
+        {/* Right Glass Student Login Form */}
         <div className="w-full max-w-md mx-auto">
           <div className="glass-strong bg-white/95 text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
             <div className="flex items-center space-x-3.5 mb-6">
@@ -107,11 +157,10 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
               </div>
             </div>
 
-
-
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-semibold text-center">
-                {error}
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-semibold text-center flex items-center justify-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -148,8 +197,14 @@ export default function StudentLogin({ onLogin, students, onSwitchToTeacher }) {
                 disabled={loading}
                 className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-blue-500/30 flex items-center justify-center space-x-2 transition-all active:scale-[0.99] mt-2"
               >
-                <Check className="w-4 h-4" />
-                <span>Sign In as Student</span>
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Sign In as Student</span>
+                  </>
+                )}
               </button>
             </form>
 

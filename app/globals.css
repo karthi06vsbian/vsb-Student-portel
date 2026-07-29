@@ -191,3 +191,103 @@ h1, h2, h3, h4, .display {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.7);
 }
+
+/* =========================================================
+   Mascot Bear & Panda Animations
+   ========================================================= */
+
+@keyframes mascot-pop {
+  0% {
+    transform: scale(0.6) translateY(40px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08) translateY(-10px);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.98) translateY(2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes mascot-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  15% { transform: translateX(-12px) rotate(-4deg); }
+  30% { transform: translateX(10px) rotate(4deg); }
+  45% { transform: translateX(-8px) rotate(-2deg); }
+  60% { transform: translateX(6px) rotate(2deg); }
+  75% { transform: translateX(-3px) rotate(-1deg); }
+}
+
+@keyframes mascot-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes thumbs-up-wiggle {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  50% { transform: scale(1.35) rotate(15deg); opacity: 1; }
+  70% { transform: scale(0.9) rotate(-8deg); }
+  85% { transform: scale(1.15) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes thumbs-down-drop {
+  0% { transform: scale(0) translateY(-30px); opacity: 0; }
+  50% { transform: scale(1.25) translateY(5px) rotate(-15deg); opacity: 1; }
+  70% { transform: scale(0.95) rotate(5deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); }
+}
+
+@keyframes ear-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+@keyframes eye-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+.animate-mascot-pop {
+  animation: mascot-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-mascot-shake {
+  animation: mascot-shake 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.animate-mascot-bounce {
+  animation: mascot-bounce 1.8s ease-in-out infinite;
+}
+
+.animate-thumbs-up {
+  animation: thumbs-up-wiggle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+  transform-origin: bottom center;
+}
+
+.animate-thumbs-down {
+  animation: thumbs-down-drop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+  transform-origin: top center;
+}
+
+.animate-ear-left {
+  animation: ear-wiggle 2s ease-in-out infinite;
+  transform-origin: bottom right;
+}
+
+.animate-ear-right {
+  animation: ear-wiggle 2s ease-in-out 0.3s infinite;
+  transform-origin: bottom left;
+}
+
+.animate-eye-blink {
+  animation: eye-blink 4s infinite;
+  transform-origin: center;
+}
+
